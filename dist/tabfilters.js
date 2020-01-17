@@ -3,141 +3,214 @@
 
 class TabFilters {
 
-	constructor(viz){
-		this.wb = viz.getWorkbook();
-		this.activeSheet = this.wb.getActiveSheet();
-		this.activeSheetName = this.activeSheet.getName();
-		this.activeSheetType = this.activeSheet.getSheetType();
-    this.denormalizedFilters = [];
-		this.normalizedFilters = [];
+    constructor(viz) {
+        this.wb = viz.getWorkbook();
+        this.activeSheet = this.wb.getActiveSheet();
+        this.activeSheetName = this.activeSheet.getName();
+        this.activeSheetType = this.activeSheet.getSheetType();
+        this.denormalizedFilters = [];
+        this.normalizedFilters = [];
 
-	}
-
-  // filter discovery at initialization
-  async init(){
-	  switch (this.activeSheetType) {
-
-      case "worksheet":
-				console.log("the activeSheet is a worksheet");
-				let worksheetObject = this.activeSheet;
-				let worksheetName = worksheetObject.getName();
-				const filters = await this._getFilters(worksheetObject);
-
-				for (let j = 0; j < filters.length; j++) {
-					let filterObject = filters[j];
-					let filterFieldName = filterObject.getFieldName();
-
-					if (filterFieldName.toLowerCase() != "measure names" && filterFieldName.toLowerCase().includes("action") == false) {
-
-						let filterWorksheetObject = {"filterFieldName" : filterFieldName, "filterObject" : filterObject, "targetWorksheet" : {"targetWorksheetName" : worksheetName, "targetWorksheetObject" : worksheetObject}};
-						this.denormalizedFilters.push(filterWorksheetObject);
-					}
-				}
-
-        break;
-
-      case "dashboard":
-				console.log("the activeSheet is a dashboard");
-			  let dashboardObjects = this.activeSheet.getObjects();
-
-				for (let i = 0; i < dashboardObjects.length; i++) {
-					let sheetObject = dashboardObjects[i];
-					let sheetObjectType = sheetObject.getObjectType();
-
-					if (sheetObjectType == 'worksheet') {
-					  let worksheetObject = sheetObject.getWorksheet();
-						let worksheetName = worksheetObject.getName();
-					  const filters = await this._getFilters(worksheetObject);
-
-						for (let j = 0; j < filters.length; j++) {
-							let filterObject = filters[j];
-							let filterFieldName = filterObject.getFieldName();
-
-							if (filterFieldName.toLowerCase() != "measure names" && filterFieldName.toLowerCase().includes("action") == false) {
-
-								let filterWorksheetObject = {"filterFieldName" : filterFieldName, "filterObject" : filterObject, "targetWorksheet" : {"targetWorksheetName" : worksheetName, "targetWorksheetObject" : worksheetObject}};
-								this.denormalizedFilters.push(filterWorksheetObject);
-							}
-						}
-			  }
     }
 
-		break;
+    // filter discovery at initialization
+    async init() {
+        switch (this.activeSheetType) {
 
-	}
+            case "worksheet":
+                console.log("the activeSheet is a worksheet");
+                let worksheetObject = this.activeSheet;
+                let worksheetName = worksheetObject.getName();
+                const filters = await this._getFilters(worksheetObject);
 
-	// return array of unique filterFieldName
-	let filterFieldNames = this.denormalizedFilters.map(data => data.filterFieldName);
-	let filterFieldNamesUnique = [... new Set(filterFieldNames)];
-	console.log("filterFieldNamesUnique", filterFieldNamesUnique);
+                for (let j = 0; j < filters.length; j++) {
+                    let filterObject = filters[j];
+                    let filterFieldName = filterObject.getFieldName();
 
-	// then loop through unique filterFieldNameArray and return normalized array of filter -> sheet targets
-	for (let i = 0; i < filterFieldNamesUnique.length; i++) {
+                    if (filterFieldName.toLowerCase() != "measure names" && filterFieldName.toLowerCase().includes("action") == false) {
 
-		// filter on filterFieldName first
-		let temp_filteredArray = this.denormalizedFilters.filter(data => data.filterFieldName === filterFieldNamesUnique[i]);
-		// then return array of targetWorksheets
-		let temp_targetWorksheetArray = temp_filteredArray.map(data => data.targetWorksheet);
-		// then return array of filterType
-		let temp_filterTypeArray = temp_filteredArray.map(data => data.filterType);
-		let temp_filterObjectArray = temp_filteredArray.map(data => data.filterObject);
+                        let filterWorksheetObject = {
+                            "filterFieldName": filterFieldName,
+                            "filterObject": filterObject,
+                            "targetWorksheet": {
+                                "targetWorksheetName": worksheetName,
+                                "targetWorksheetObject": worksheetObject
+                            }
+                        };
+                        this.denormalizedFilters.push(filterWorksheetObject);
+                    }
+                }
 
-		let tempNewFilterInfoObj = {filterFieldName : filterFieldNamesUnique[i]};
+                break;
 
-		tempNewFilterInfoObj.filterObject = temp_filterObjectArray[0];
-		tempNewFilterInfoObj.filterFieldType = tempNewFilterInfoObj.filterObject.getFilterType();
-		tempNewFilterInfoObj.targetWorksheets = temp_targetWorksheetArray;
+            case "dashboard":
+                console.log("the activeSheet is a dashboard");
+                let dashboardObjects = this.activeSheet.getObjects();
 
-		// add logic for different filter types supported by Tableau JS API (categorical, quantitative, hierarchical, relative_date)
-		let temp_uniqueValues = [];
-		for (let n = 0; n < tempNewFilterInfoObj.filterObject.getAppliedValues().length; n++){
+                for (let i = 0; i < dashboardObjects.length; i++) {
+                    let sheetObject = dashboardObjects[i];
+                    let sheetObjectType = sheetObject.getObjectType();
 
-			temp_uniqueValues.push({"id" : n, "text" : tempNewFilterInfoObj.filterObject.getAppliedValues()[n].formattedValue, "tableauRawValue" : tempNewFilterInfoObj.filterObject.getAppliedValues()[n].value});
-		}
+                    if (sheetObjectType == 'worksheet') {
+                        let worksheetObject = sheetObject.getWorksheet();
+                        let worksheetName = worksheetObject.getName();
+                        const filters = await this._getFilters(worksheetObject);
 
-		tempNewFilterInfoObj.filterDomainValues = temp_uniqueValues;
-		this.normalizedFilters.push(tempNewFilterInfoObj);
+                        for (let j = 0; j < filters.length; j++) {
+                            let filterObject = filters[j];
+                            let filterFieldName = filterObject.getFieldName();
 
- }
+                            if (filterFieldName.toLowerCase() != "measure names" && filterFieldName.toLowerCase().includes("action") == false) {
 
-	// temporary -- testing
-	let filterFieldName = 'Region';
-	let tempFilters = this.normalizedFilters.filter(filter => filter.filterFieldName === filterFieldName);
-	console.log("tempFilters:", tempFilters);
-	return this;
+                                let filterWorksheetObject = {
+                                    "filterFieldName": filterFieldName,
+                                    "filterObject": filterObject,
+                                    "targetWorksheet": {
+                                        "targetWorksheetName": worksheetName,
+                                        "targetWorksheetObject": worksheetObject
+                                    }
+                                };
+                                this.denormalizedFilters.push(filterWorksheetObject);
+                            }
+                        }
+                    }
+                }
 
-}
+                break;
 
-		// method to apply filter values
-		async applyFilters(filterFieldName, values){
-			const _this = this;
-			let filterToApply = this.normalizedFilters.filter(filter => filter.filterFieldName === filterFieldName);
-			for (i = 0; i < filterToApply.targetWorksheets.length - 1; i++){
-				filterToApply.targetWorksheets[i].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-			}
-			return await filterToApply.targetWorksheets[i].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-		}
-
-		// method to clear all filter values
-		async clearFilters(filterFieldName){
-			const _this = this;
-			let filterToApply = this.normalizedFilters.filter(filter => filter.filterFieldName === filterFieldName);
-			for (let i = 0; i < filterToApply.targetWorksheets.length - 1; i++){
-          filterToApply.targetWorksheets[i].targetWorksheetObject.clearFilterAsync(filterToApply.filterFieldName);
         }
-        return filterToApply.targetWorksheets[i].targetWorksheetObject.clearFilterAsync(filterToApply.filterFieldName);
-		}
 
-		// method to get filters for specified type of filter (e.g. categorical, quantitative, hierarchical, relative_date)
-		getFiltersByType(type) {
-		  let filteredFilters = this.normalizedFilters.filter(obj => obj.filterFieldType === type);
-			return filteredFilters;
-		}
+        // return array of unique filterFieldName
+        let filterFieldNames = this.denormalizedFilters.map(data => data.filterFieldName);
+        let filterFieldNamesUnique = [...new Set(filterFieldNames)];
+        console.log("filterFieldNamesUnique", filterFieldNamesUnique);
 
-		// internal/helper function to retrieve the filter object for a tableau worksheet
-		async _getFilters(obj){
-			const _this = this;
-			return await obj.getFiltersAsync();
-		}
+        // then loop through unique filterFieldNameArray and return normalized array of filter -> sheet targets
+        for (let i = 0; i < filterFieldNamesUnique.length; i++) {
+
+            // filter on filterFieldName first
+            let temp_filteredArray = this.denormalizedFilters.filter(data => data.filterFieldName === filterFieldNamesUnique[i]);
+            // then return array of targetWorksheets
+            let temp_targetWorksheetArray = temp_filteredArray.map(data => data.targetWorksheet);
+            // then return array of filterType
+            let temp_filterTypeArray = temp_filteredArray.map(data => data.filterType);
+            let temp_filterObjectArray = temp_filteredArray.map(data => data.filterObject);
+
+            let tempNewFilterInfoObj = {
+                filterFieldName: filterFieldNamesUnique[i]
+            };
+
+            tempNewFilterInfoObj.filterObject = temp_filterObjectArray[0];
+            tempNewFilterInfoObj.filterFieldType = tempNewFilterInfoObj.filterObject.getFilterType();
+            tempNewFilterInfoObj.targetWorksheets = temp_targetWorksheetArray;
+
+            switch (tempNewFilterInfoObj.filterFieldType) {
+
+                case 'categorical':
+                    console.log("debug info - filterFieldName:", filterFieldNamesUnique[i]);
+                    if (tempNewFilterInfoObj.filterObject.getAppliedValues() === null) {
+                        tempNewFilterInfoObj.filterDomainValues = null;
+                        this.normalizedFilters.push(tempNewFilterInfoObj);
+
+                    } else {
+                        let temp_uniqueValues = [];
+                        for (let n = 0; n < tempNewFilterInfoObj.filterObject.getAppliedValues().length; n++) {
+
+                            temp_uniqueValues.push({
+                                "id": n,
+                                "text": tempNewFilterInfoObj.filterObject.getAppliedValues()[n].formattedValue,
+                                "tableauRawValue": tempNewFilterInfoObj.filterObject.getAppliedValues()[n].value
+                            });
+                        }
+
+                        tempNewFilterInfoObj.filterDomainValues = temp_uniqueValues;
+                        this.normalizedFilters.push(tempNewFilterInfoObj);
+                    }
+
+                    break;
+
+                case 'quantitative':
+
+                    let temp_domainMax = tempNewFilterInfoObj.filterObject.getDomainMax();
+                    let temp_domainMin = tempNewFilterInfoObj.filterObject.getDomainMin();
+                    tempNewFilterInfoObj.filterDomainMax = temp_domainMax;
+                    tempNewFilterInfoObj.filterDomainMin = temp_domainMin;
+                    this.normalizedFilters.push(tempNewFilterInfoObj);
+
+                    break;
+
+            }
+
+        }
+
+        // temporary -- testing
+        let filterFieldName = 'Region';
+        let tempFilters = this.normalizedFilters.filter(filter => filter.filterFieldName === filterFieldName);
+        console.log("tempFilters:", tempFilters);
+        return this;
+
+    }
+
+
+    async applyCategoricalFilters(updateType, filterFieldName, values) {
+
+        switch (updateType) {
+
+            case 'REPLACE':
+
+                const _this = this;
+                let index = this.normalizedFilters.findIndex(filter => filter.filterFieldName === filterFieldName);
+
+                let i;
+                for (i = 0; i < this.normalizedFilters[index].targetWorksheets.length - 1; i++) {
+                    this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(this.normalizedFilters[index].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
+                }
+                return await this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(this.normalizedFilters[index].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
+                break;
+
+            case 'CLEAR':
+
+                for (i = 0; i < this.normalizedFilters[index].targetWorksheets.length - 1; i++) {
+                    this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.clearFilterAsync(this.normalizedFilters[index].filterFieldName);
+                }
+                return await this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.clearFilterAsync(this.normalizedFilters[index].filterFieldName);
+
+        }
+    }
+
+    // method to apply filter values
+    async applyFilters(filterFieldName, values) {
+        const _this = this;
+        let index = this.normalizedFilters.findIndex(filter => filter.filterFieldName === filterFieldName);
+        let i;
+        for (i = 0; i < this.normalizedFilters[index].targetWorksheets.length - 1; i++) {
+            this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(this.normalizedFilters[index].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
+        }
+        return await this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(this.normalizedFilters[index].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
+    }
+
+    // method to clear all filter values
+    // clearFilterAsync
+    async clearFilters(filterFieldName) {
+        const _this = this;
+        let index = this.normalizedFilters.findIndex(filter => filter.filterFieldName === filterFieldName);
+        let i;
+        for (i = 0; i < this.normalizedFilters[index].targetWorksheets.length - 1; i++) {
+            this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.clearFilterAsync(this.normalizedFilters[index].filterFieldName);
+        }
+        return await this.normalizedFilters[index].targetWorksheets[i].targetWorksheetObject.clearFilterAsync(this.normalizedFilters[index].filterFieldName);
+    }
+
+    // method to get filters for specified type of filter (e.g. categorical, quantitative, hierarchical, relative_date)
+    getFiltersByType(type) {
+        let filteredFilters = this.normalizedFilters.filter(obj => obj.filterFieldType === type);
+        return filteredFilters;
+    }
+
+    // internal/helper function to retrieve the filter object for a tableau worksheet
+    async _getFilters(obj) {
+        const _this = this;
+        return await obj.getFiltersAsync();
+    }
 
 }

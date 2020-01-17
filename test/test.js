@@ -23,7 +23,8 @@ var vizOptions = {
 // Basic viz initializer to be shared
 function initializeViz(placeholderDivId, url, options) {
 
-  url = buildVizUrl("https://demo.tableau.com", "Tableau", "Superstore", "Customers");
+  // url = buildVizUrl("https://demo.tableau.com", "Tableau", "Superstore_Justin", "Customers");
+  url = 'https://demo.tableau.com/t/Tableau/views/SuperTest/TestDash';
   console.log("url:", url);
 
   var containerDiv = document.getElementById("vizContainer");
@@ -57,14 +58,24 @@ async function uiFiltersOnFirstInteractive(viz){
 	// activeSheet = activeWorkbook.getActiveSheet();
 	// activeSheetName = activeSheet.getName();
 
-	let filters = await (new TabFilters(viz)).init();
+  viz.revertAllAsync();
+
+	var filters = await (new TabFilters(viz)).init();
   // global var (wsFilterInfoGlobal) for accessing via browser web console debug
 	console.log("filters: ", filters);
 
   // testing
-  let type = 'categorical';
-  let catFilters = filters.getFiltersByType(type);
-  console.log("catFilters:", catFilters);
+  // let categoricalFilters = filters.getFiltersByType('categorical');
+  // console.log("categoricalFilters:", categoricalFilters);
+  // let quantitativeFilters = filters.getFiltersByType('quantitative');
+  // console.log("quantitativeFilters:", quantitativeFilters);
+  listenToFilterSelection();
+
+  // filters.applyFilters("Region", ["South"]);
+  // filters.applyFilters("State", ["Texas","Utah"]);
+  // filters.applyFilters("Ship Mode", ["First"]);
+
+  // filters.applyCategoricalFilters("REPLACE", "State", ["Texas","Utah"]);
 
 	// filterDataForSelect2 = filters.getFilterDataForSelect2();
   // console.log("getFilterDataForSelect2:", filterDataForSelect2);
@@ -77,18 +88,16 @@ async function uiFiltersOnFirstInteractive(viz){
 
 
 
-// function listenToFilterSelection() {
-//           viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, onFilterSelection);
-//
-// }
-//
-// function onFilterSelection(marksEvent) {
-//             // console.log("filter change!");
-//             return marksEvent.getFilterAsync().then(reportSelectedFilters);
-// }
-//
-// function reportSelectedFilters(filters) {
-//
-//
-//   console.log(filters);
-// }
+function listenToFilterSelection() {
+          viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, onFilterSelection);
+
+}
+
+function onFilterSelection(marksEvent) {
+            console.log("filter change!");
+            return marksEvent.getFilterAsync().then(reportSelectedFilters);
+}
+
+function reportSelectedFilters(filters) {
+  console.log("filters selected:", filters);
+}
