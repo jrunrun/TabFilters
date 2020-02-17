@@ -5,17 +5,19 @@
 class TabFilters {
 
   constructor() {
+    // future: option to add additional metadata (e.g. label, index, etc.) to filter values in order to satisfy any interesting 3rd-party UI button requirements
     this.option;
+    // for testing; delete later
+    this.testing;
     this.embeddedVizzes = [];
     this.vizUpdateMode = {
-      ALL: "all",
+      PAGE: "page",
       VIZ: "viz",
-      SHEETS: "sheets"
+      SHEET: "sheet"
     };
-
+    // simulate enum type
+    Object.freeze(this.vizUpdateMode);
   }
-
-
 
   // filter discovery at initialization
   async discovery(viz, option) {
@@ -26,7 +28,7 @@ class TabFilters {
     // this.filtersEventHistory = [];
     // this.filtersEvent = [];
 
-    // add measure names and action filter options
+    // future: on/off switch for "measure names" and "action" filter types
     // if (filterFieldName.toLowerCase() != "measure names" && filterFieldName.toLowerCase().includes("action") == false) {
     // option for parameters discovery
     // option for parameters addEventListener
@@ -79,6 +81,7 @@ class TabFilters {
               filterFieldName: filterFieldName,
               filterObject: filterObject,
               targetWorksheet: {
+                targetVizName: activeSheetName,
                 targetWorksheetName: worksheetName,
                 targetWorksheetObject: worksheetObject
               }
@@ -106,6 +109,7 @@ class TabFilters {
                   filterFieldName: filterFieldName,
                   filterObject: filterObject,
                   targetWorksheet: {
+                    targetVizName: activeSheetName,
                     targetWorksheetName: worksheetName,
                     targetWorksheetObject: worksheetObject
                   }
@@ -119,6 +123,7 @@ class TabFilters {
 
     }
 
+    // console.log("denormalizedFilters @ 126", denormalizedFilters);
 
     // future: if filterAreAllValuesSelected === 'false', then try to clone viz in hidden div, apply all filters and get domain values
     let filterFieldNames = denormalizedFilters.map(data => data.filterFieldName);
@@ -128,6 +133,7 @@ class TabFilters {
       // filter on filterFieldName
       let temp_filteredArray = denormalizedFilters.filter(data => data.filterFieldName === filterFieldNamesUnique[i]);
       // then return array of targetWorksheets
+      // have this worksheet object include the parentViz
       let temp_targetWorksheetArray = temp_filteredArray.map(data => data.targetWorksheet);
       // then return array of filterType
       let temp_filterTypeArray = temp_filteredArray.map(data => data.filterType);
@@ -138,7 +144,9 @@ class TabFilters {
       tempNewFilterInfoObj.filterObject = temp_filterObjectArray[0];
       tempNewFilterInfoObj.filterFieldType = tempNewFilterInfoObj.filterObject.getFilterType();
       tempNewFilterInfoObj.targetWorksheets = temp_targetWorksheetArray;
+
       switch (tempNewFilterInfoObj.filterFieldType) {
+
         case 'categorical':
           tempNewFilterInfoObj.filterAreAllValuesSelected = tempNewFilterInfoObj.filterObject.getIsAllSelected();
           if (tempNewFilterInfoObj.filterObject.getAppliedValues() === null) {
@@ -172,7 +180,9 @@ class TabFilters {
           filters.push(tempNewFilterInfoObj);
           break;
 
-        case 'relative_date':
+        case 'relativedate':
+          console.log("tempNewFilterInfoObj.filterObject @ #181", tempNewFilterInfoObj.filterObject);
+          this.testing = tempNewFilterInfoObj.filterObject;
           let temp_period = tempNewFilterInfoObj.filterObject.getPeriod();
           let temp_range = tempNewFilterInfoObj.filterObject.getRange();
           let temp_rangeN = tempNewFilterInfoObj.filterObject.getRangeN();
@@ -185,622 +195,267 @@ class TabFilters {
       }
 
     }
-    // embeddedVizzes.push(this.filters);
+
     embeddedViz.filters = filters;
     this.embeddedVizzes.push(embeddedViz);
     return this;
 
   }
 
-  updateOption(option) {
-    this.option = $.extend(this.option, option);
-    // toggle event listener
-    if (this.option.isFilterEventListenterEnabled) {
-      viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, this.onFilterSelection.bind(this));
-    } else {
-      viz.removeEventListener(tableau.TableauEventName.FILTER_CHANGE, this.onFilterSelection.bind(this));
-    }
-    return this;
+  // future: add eventlistner on/off switch
+  // updateOption(option) {
+  //   this.option = $.extend(this.option, option);
+  //   // toggle event listener
+  //   if (this.option.isFilterEventListenterEnabled) {
+  //     viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, this.onFilterSelection.bind(this));
+  //   } else {
+  //     viz.removeEventListener(tableau.TableauEventName.FILTER_CHANGE, this.onFilterSelection.bind(this));
+  //   }
+  //   return this;
+  //
+  // }
 
-  }
-
-
-
-
-  // *** NEED TO ADD ALL OPTIONS, NULL STUFF, INCLUDE/EXCLUDE -- SEE ONLINE HELP ****
-  // could think about using recursion now that I'm accepting multiple vizzes (i.e. an array of vizzes via targetVizArray)
-  async applyFilters(filterFieldName, targetVizArray, updateType, values) {
+  // future: need to add all the appropriate filter-type options
+  async applyFilters(filterObj) {
     let filterToApplyArray = [];
+    let filter = [];
     let i;
+    let j;
     let filterType;
     let promiseArray = [];
-    let update = this.vizUpdateMode.ALL;
 
-    // if targetVizArray is type string and equal to "all", apply filters to all vizzes
-    if (typeof targetVizArray === 'string' || targetVizArray instanceof String) {
-      if (update === this.vizUpdateMode.ALL) {
+    // console.log("filterObj", filterObj);
+    // console.log("updateMode", filterObj.scope.mode);
+
+    // route filter update by scope.mode (PAGE, VIZ OR SHEET)
+    switch (filterObj.scope.mode) {
+      case this.vizUpdateMode.PAGE:
+        // applies the filter value globally to all vizzes; i.e. every worksheet on the page that includes the filter
         for (i = 0; i < this.embeddedVizzes.length; i++) {
-          let filter = this.embeddedVizzes[i].filters.filter(filter => filter.filterFieldName === filterFieldName);
-          // do this once to be more efficient
-          filterType = filter[0].filterFieldType;
-          filterToApplyArray.push(filter[0]);
+          filter = this.embeddedVizzes[i].filters.filter(filter => filter.filterFieldName === filterObj.filter.fieldName);
+          if (filter.length === 1) {
+            // if we find matching filter, then add to filterToApplyArray
+            filterType = filter[0].filterFieldType;
+            filterToApplyArray.push(filter[0]);
+          }
         }
+        // future: add some error handling
+        // if (filterToApplyArray.length === 0) {
+        //   console.error("Can't find a filter called:", filterObj.filter.fieldName);
+        // }
+        break;
+
+      case this.vizUpdateMode.VIZ:
+        // applies the filter value globally to the specificied viz; e.g. every worksheet in the viz that includes the filter
+        for (i = 0; i < filterObj.scope.targetArray.length; i++) {
+          let viz = this.embeddedVizzes.filter(v => v.activeSheetName === filterObj.scope.targetArray[i]);
+          if (viz.length === 1) {
+            // if it found viz, then do this block
+            filter = viz[0].filters.filter(filter => filter.filterFieldName === filterObj.filter.fieldName);
+            // console.log("filter @ #247", filter);
+            if (filter.length === 1) {
+              // if we find matching filter, then add to filterToApplyArray
+              filterType = filter[0].filterFieldType;
+              filterToApplyArray.push(filter[0]);
+            }
+          }
+        }
+        break;
+
+      case this.vizUpdateMode.SHEET:
+        // applies the filter value to specified viz and worksheet(s) combination
+        for (i = 0; i < filterObj.scope.targetArray.length; i++) {
+          // filter on viz
+          let viz = this.embeddedVizzes.filter(v => v.activeSheetName === filterObj.scope.targetArray[i].viz);
+          if (viz.length === 1) {
+            // if it found viz, then do this block
+            // filter on fieldName
+            let filter = viz[0].filters.filter(filter => filter.filterFieldName === filterObj.filter.fieldName);
+            // filter on sheets
+            if (filter.length === 1) {
+              // if we find matching filter, proceed
+              let targetWorksheetsArray_temp = [];
+              for (j = 0; j < filterObj.scope.targetArray[i].sheetsArray.length; j++) {
+                let sheets = filter[0].targetWorksheets.filter(ws => ws.targetWorksheetName === filterObj.scope.targetArray[i].sheetsArray[j]);
+                if (sheets.length === 1) {
+                  // if we find matching filter, add to array
+                  targetWorksheetsArray_temp.push(sheets[0]);
+                }
+              }
+
+              if (targetWorksheetsArray_temp.length > 0) {
+                // finally, if we found at least one matching sheet, add to filterToApplyArray
+                filter[0].targetWorksheets = targetWorksheetsArray_temp;
+                filterType = filter[0].filterFieldType;
+                filterToApplyArray.push(filter[0]);
+
+              }
+
+            }
+
+          }
+        }
+
+        break;
+    }
+
+
+    // note that tableau.FilterUpdateType Enum only includes: {ALL: "all", REPLACE: "replace", ADD: "add", REMOVE: "remove"}
+    // I'm including an updateType of "clear" and routing those to clearFilterAsync(fieldName: string) which is supported for all filter types (categorical, quantitative, hierarchical and relativedate)
+    if (filterObj.filter.updateType === 'clear') {
+
+      for (i = 0; i < filterToApplyArray.length; i++) {
+        let filterToApply = filterToApplyArray[i];
+        let promise = this._sendClearFilters(filterToApply, filterObj.filter.values);
+        promiseArray.push(promise);
+        console.log("filterToApply", filterToApply);
       }
 
+    } else {
+      // route the filters by filterType
+      switch (filterType) {
+        case "categorical":
+          // tableau.FilterUpdateType applies to this filter type
+          for (i = 0; i < filterToApplyArray.length; i++) {
+            let filterToApply = filterToApplyArray[i];
+            // let promise = this._sendFilterValuesToTableau(filterToApply, filterType, filterObj.filter.updateType, filterObj.filter.values);
+            let promise = this._sendCategoricalFilters(filterToApply, filterObj.filter.updateType, filterObj.filter.values);
+            promiseArray.push(promise);
+            console.log("filterToApply", filterToApply);
+          }
+          break;
 
+        case "quantitative":
+          for (i = 0; i < filterToApplyArray.length; i++) {
+            let filterToApply = filterToApplyArray[i];
+            let promise = this._sendRangeFilters(filterToApply, filterObj.filter.values);
+            promiseArray.push(promise);
+            console.log("filterToApply", filterToApply);
+          }
+          break;
 
+          // future: test this with cube data as this is not intended for relational data structures
+          // also, per online help, the filter values require the full hierarchical name (e.g. [Product].[All Product].[Espresso])
+          // https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_concepts_filtering.htm
+        case "hierarchical":
+          // tableau.FilterUpdateType applies to this filter type
+          for (i = 0; i < filterToApplyArray.length; i++) {
+            let filterToApply = filterToApplyArray[i];
+            let promise = this._sendHierarchicalFilters(filterToApply, filterObj.filter.updateType, filterObj.filter.values);
+            promiseArray.push(promise);
+            console.log("filterToApply", filterToApply);
+          }
+          break;
 
-    }
-    // otherwise, apply filter to vizzes provided in the array
-    else if (Array.isArray(targetVizArray)) {
-      for (i = 0; i < targetVizArray.length; i++) {
-        let viz = this.embeddedVizzes.filter(v => v.activeSheetName === targetVizArray[i]);
-        let filter = viz[0].filters.filter(filter => filter.filterFieldName === filterFieldName);
-        filterType = filter[0].filterFieldType;
-        filterToApplyArray.push(filter[0]);
-        // console.log("targetVizArray", targetVizArray);
-        // console.log("viz", viz);
-        // console.log("viz[0]", viz[0]);
-        // console.log("filter[0]", filter[0]);
+        case "relativedate":
+          for (i = 0; i < filterToApplyArray.length; i++) {
+            let filterToApply = filterToApplyArray[i];
+            let promise = this._sendRelativeDateFilters(filterToApply, filterObj.filter.values);
+            promiseArray.push(promise);
+            console.log("filterToApply", filterToApply);
+          }
+          break;
       }
-    }
-
-    // loop through all the viz and
-    for (i = 0; i < filterToApplyArray.length; i++) {
-      let filterToApply = filterToApplyArray[i];
-      let promise = this.applyFilterValues(filterToApply, filterType, updateType, values);
-      promiseArray.push(promise);
-
-      console.log("i", i);
-      console.log("filterToApplyArray", filterToApplyArray);
-      console.log("updateType", updateType);
-      console.log("filterToApply", filterToApply);
 
     }
+
+    // TEST: do promise.all down in the send functions
+
+
     // https://stackoverflow.com/questions/35612428/call-async-await-functions-in-parallel
-    // await Promise.all(promiseArray);
-
-
+    // const [data1, data2, data3, data4] = await Promise.all(promiseArray);
     const data = await Promise.all(promiseArray);
     console.log("data", data);
 
-    //
-    // const data = await Promise.all(promiseArray);
-
-
   }
-
-
-
-
 
   // // *** NEED TO ADD ALL OPTIONS, NULL STUFF, INCLUDE/EXCLUDE -- SEE ONLINE HELP ****
-  // // could think about using recursion now that I'm accepting multiple vizzes (i.e. an array of vizzes via targetVizArray)
-  // async applyFilters(filterFieldName, targetVizArray, updateType, values) {
-  //   let filterToApplyArray = [];
-  //   let i;
-  //   let j;
-  //   let filterType;
-  //
-  //   // this.vizUpdateMode = {ALL: "all"}
-  //   let update = this.vizUpdateMode.ALL;
-  //
-  //   if (!Array.isArray(targetVizArray)) {
-  //     if (targetVizArray === update) {
-  //       for (i = 0; i < this.embeddedVizzes.length; i++) {
-  //         let filter = this.embeddedVizzes[i].filters.filter(filter => filter.filterFieldName == filterFieldName);
-  //         // do this once to be more efficient
-  //         filterType = filter[0].filterFieldType;
-  //         filterToApplyArray.push(filter[0]);
-  //       }
-  //     }
-  //
-  //   } else {
-  //     for (i = 0; i < targetVizArray.length; i++) {
-  //       let viz = this.embeddedVizzes.filter(v => v.activeSheetName === targetVizArray[i]);
-  //       let filter = viz[0].filters.filter(filter => filter.filterFieldName == filterFieldName);
-  //       filterType = filter[0].filterFieldType;
-  //       filterToApplyArray.push(filter[0]);
-  //       // console.log("targetVizArray", targetVizArray);
-  //       // console.log("viz", viz);
-  //       // console.log("viz[0]", viz[0]);
-  //       // console.log("filter[0]", filter[0]);
-  //     }
-  //   }
-  //
-  //   for (i = 0; i < filterToApplyArray.length; i++) {
-  //     console.log("i", i);
-  //
-  //     console.log("filterToApplyArray", filterToApplyArray);
-  //     console.log("updateType", updateType);
-  //
-  //     if (updateType === 'CLEAR') {
-  //       for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //         filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApplyArray[i].filterFieldName);
-  //       }
-  //       return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApplyArray[i].filterFieldName);
-  //
-  //     } else {
-  //       // console.log("got to line 315");
-  //       // console.log("filterType", filterType);
-  //
-  //       switch (filterType) {
-  //
-  //         case "categorical":
-  //
-  //           switch (updateType) {
-  //
-  //             case 'ALL':
-  //
-  //               for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                 filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //               }
-  //               return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //               // break;
-  //
-  //             case 'REPLACE':
-  //
-  //               console.log("i", i);
-  //               console.log("filterToApplyArray[i]", filterToApplyArray[i]);
-  //
-  //               // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //               for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                 // console.log("filterToApplyArray[i].targetWorksheets.length", filterToApplyArray[i].targetWorksheets.length);
-  //                 console.log("j", j);
-  //                 filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //               }
-  //               console.log("j", j);
-  //               return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //               // break;
-  //
-  //             case 'ADD':
-  //
-  //               // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //               for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                 filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //               }
-  //               return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //               // break;
-  //
-  //             case 'REMOVE':
-  //
-  //               // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //               for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                 filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //               }
-  //               return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //               // break;
-  //
-  //           }
-  //           // break;
-  //
-  //           case "quantitative":
-  //
-  //             switch (updateType) {
-  //
-  //               case 'ALL':
-  //
-  //                 // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                 for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                   filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //                 }
-  //                 return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //                 // break;
-  //
-  //               case 'REPLACE':
-  //
-  //                 // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                 for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                   filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //                 }
-  //                 return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //                 // break;
-  //
-  //               case 'ADD':
-  //
-  //                 // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                 for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                   filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //                 }
-  //                 return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //                 // break;
-  //
-  //               case 'REMOVE':
-  //
-  //                 // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                 for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                   filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //                 }
-  //                 return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //                 // break;
-  //
-  //             }
-  //             // break;
-  //
-  //             case "hierarchical":
-  //
-  //               switch (updateType) {
-  //
-  //                 case 'ALL':
-  //
-  //                   // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                   for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                     filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //                   }
-  //                   return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //                   // break;
-  //
-  //                 case 'REPLACE':
-  //
-  //                   // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                   for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                     filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //                   }
-  //                   return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //                   // break;
-  //
-  //                 case 'ADD':
-  //
-  //                   // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                   for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                     filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //                   }
-  //                   return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //                   // break;
-  //
-  //                 case 'REMOVE':
-  //
-  //                   // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                   for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                     filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //                   }
-  //                   return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //                   // break;
-  //
-  //               }
-  //               // break;
-  //
-  //               case "relative_date":
-  //
-  //                 switch (updateType) {
-  //
-  //                   case 'ALL':
-  //
-  //                     // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                     for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                       filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //                     }
-  //                     return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ALL);
-  //                     // break;
-  //
-  //                   case 'REPLACE':
-  //
-  //                     // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                     for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                       filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //                     }
-  //                     return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //                     // break;
-  //
-  //                   case 'ADD':
-  //
-  //                     // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                     for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                       filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //                     }
-  //                     return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.ADD);
-  //                     // break;
-  //
-  //                   case 'REMOVE':
-  //
-  //                     // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //
-  //                     for (j = 0; j < filterToApplyArray[i].targetWorksheets.length - 1; j++) {
-  //                       filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //                     }
-  //                     return await filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-  //                     // break;
-  //
-  //                 }
-  //                 // break;
-  //
-  //       }
-  //
-  //     }
-  //
-  //
-  //   }
-  //
-  // }
-
-  // // method to apply filter values
-  // // this works (filtering)
-  // async applyFilters1(filterFieldName, values) {
-  //   const _this = this;
-  //   let index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-  //   let i;
-  //   for (i = 0; i < this.embeddedViz.filters[index].targetWorksheets.length - 1; i++) {
-  //     this.embeddedViz.filters[index].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(this.embeddedViz.filters[index].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //   }
-  //   return await this.embeddedViz.filters[index].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(this.embeddedViz.filters[index].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  // }
-  //
-  // // this is more efficient because I don't have to retrieve item via index (search array) each time
-  // async applyFilters2(filterFieldName, values) {
-  //   let filterToApply = this.embeddedViz.filters.filter(filter => filter.filterFieldName == filterFieldName);
-  //   filterToApply = filterToApply[0];
-  //   // console.log("filterToApply:", filterToApply[0]);
-  //   console.log("filterToApply:", filterToApply);
-  //   // console.log("filterToApply[0].targetWorksheets:", filterToApply[0].targetWorksheets);
-  //   console.log("filterToApply[0].targetWorksheets:", filterToApply.targetWorksheets);
-  //   let i;
-  //
-  //   for (i = 0; i < filterToApply.targetWorksheets.length - 1; i++) {
-  //     filterToApply.targetWorksheets[i].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //   }
-  //   return await filterToApply.targetWorksheets[i].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //
-  //
-  //   // for (i = 0; i < filterToApply[0].targetWorksheets.length - 1; i++) {
-  //   //   filterToApply[0].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(filterToApply[0].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //   // }
-  //   // return await filterToApply[0].targetWorksheets[i].targetWorksheetObject.applyFilterAsync(filterToApply[0].filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-  //
-  // }
 
 
 
 
-
-
-  // method to get filters for specified type of filter (e.g. categorical, quantitative, hierarchical, relative_date)
-  getFiltersByType(type) {
-    let filteredFilters = this.embeddedViz.filters.filter(obj => obj.filterFieldType === type);
-    return filteredFilters;
-  }
-
-  // var getFiltersByType = function (type){
-  //
-  //
-  // }
-
-  // internal/helper function to apply filters
-  async applyFilterValues(filterToApply, filterType, updateType, values) {
+  // future: add options
+  // future: add a clear all filters (adjusted to scope.mode and scope.targetArray)
+  async _sendClearFilters(filterToApply) {
     let j;
-
-    if (updateType === 'CLEAR') {
-      for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-        filterToApply.targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApply.filterFieldName);
-      }
-      return await filterToApply.targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApply.filterFieldName);
-
-    } else {
-      // console.log("got to line 315");
-      // console.log("filterType", filterType);
-
-      switch (filterType) {
-
-        case "categorical":
-
-          switch (updateType) {
-
-            case 'ALL':
-
-              for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-              }
-              return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-              // break;
-
-            case 'REPLACE':
-
-              // console.log("i", i);
-              console.log("filterToApply", filterToApply);
-
-              // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-              for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                // console.log("filterToApply.targetWorksheets.length", filterToApply.targetWorksheets.length);
-                console.log("j", j);
-                filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-              }
-              console.log("j", j);
-              return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-              // break;
-
-            case 'ADD':
-
-              // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-              for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-              }
-              return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-              // break;
-
-            case 'REMOVE':
-
-              // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-              for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-              }
-              return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-              // break;
-
-          }
-          // break;
-
-          case "quantitative":
-
-            switch (updateType) {
-
-              case 'ALL':
-
-                // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                  filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-                }
-                return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-                // break;
-
-              case 'REPLACE':
-
-                // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                  filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-                }
-                return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-                // break;
-
-              case 'ADD':
-
-                // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                  filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-                }
-                return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-                // break;
-
-              case 'REMOVE':
-
-                // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                  filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-                }
-                return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-                // break;
-
-            }
-            // break;
-
-            case "hierarchical":
-
-              switch (updateType) {
-
-                case 'ALL':
-
-                  // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                  for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                    filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-                  }
-                  return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-                  // break;
-
-                case 'REPLACE':
-
-                  // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                  for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                    filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-                  }
-                  return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-                  // break;
-
-                case 'ADD':
-
-                  // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                  for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                    filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-                  }
-                  return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-                  // break;
-
-                case 'REMOVE':
-
-                  // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                  for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                    filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-                  }
-                  return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-                  // break;
-
-              }
-              // break;
-
-              case "relative_date":
-
-                switch (updateType) {
-
-                  case 'ALL':
-
-                    // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                    for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                      filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-                    }
-                    return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ALL);
-                    // break;
-
-                  case 'REPLACE':
-
-                    // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                    for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                      filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-                    }
-                    return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REPLACE);
-                    // break;
-
-                  case 'ADD':
-
-                    // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                    for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                      filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-                    }
-                    return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.ADD);
-                    // break;
-
-                  case 'REMOVE':
-
-                    // index = this.embeddedViz.filters.findIndex(filter => filter.filterFieldName === filterFieldName);
-
-                    for (j = 0; j < filterToApply.targetWorksheets.length - 1; j++) {
-                      filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-                    }
-                    return await filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values, tableau.FilterUpdateType.REMOVE);
-                    // break;
-
-                }
-                // break;
-
-      }
-
+    let promise;
+    let promiseArray = [];
+
+    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
+      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApply.filterFieldName);
+      promiseArray.push(promise);
     }
-
+    return await promiseArray;
+    // break;
 
   }
 
+  async _sendCategoricalFilters(filterToApply, updateType, values) {
+    // supports tableau.FilterUpdateType
+    let j;
+    let promise;
+    let promiseArray = [];
+    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
+      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, updateType);
+      promiseArray.push(promise);
+    }
+    return await promiseArray;
 
-  // internal/helper function to retrieve the filter object for a tableau worksheet
+  }
+
+  // internal/helper function to send RelativeDate filters Tableau
+  async _sendRelativeDateFilters(filterToApply, values) {
+    let j;
+    let promise;
+    let promiseArray = [];
+
+    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
+      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values);
+      promiseArray.push(promise);
+    }
+    return await promiseArray;
+    // break;
+
+  }
+
+  // internal/helper function to send Hierarchical filters Tableau
+  async _sendHierarchicalFilters(filterToApply, updateType, values) {
+    // supports tableau.FilterUpdateType
+    let j;
+    let promise;
+    let promiseArray = [];
+
+    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
+      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, updateType);
+      promiseArray.push(promise);
+    }
+    return await promiseArray;
+    // break;
+
+  }
+
+  // internal/helper function to send Range filters Tableau
+  async _sendRangeFilters(filterToApply, values) {
+    let j;
+    let promise;
+    let promiseArray = [];
+
+    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
+      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values);
+      promiseArray.push(promise);
+    }
+    return await promiseArray;
+    // break;
+
+  }
+
+  // internal/helper function to retrieve filters from Tableau JS API
   async _getFilters(obj) {
     const _this = this;
     return await obj.getFiltersAsync();
   }
 
-  // internal/helper function to retrieve the filter object for a tableau worksheet
+  // internal/helper function to retrieve the filters from Tableau JS API (notice: getFilterAsync is singular; this is for getting filter values from Tableau filter event)
   async _getFilterFromEvent(obj) {
     const _this = this;
     // add the filterObject onto the normalizedFilters as the last filterObject update / state
