@@ -33,18 +33,18 @@ class TabFilters {
     // option for parameters discovery
     // option for parameters addEventListener
 
-    // update default options
-    this.option = $.extend({
-      isFilterEventListenterEnabled: false,
-      isFilterEventHistoryStored: false,
-      isSessionFilterSelectionsStored: false,
-    }, option);
+    // // update default options
+    // this.option = $.extend({
+    //   isFilterEventListenterEnabled: false,
+    //   isFilterEventHistoryStored: false,
+    //   isSessionFilterSelectionsStored: false,
+    // }, option);
 
 
-    // en/disable filter events
-    if (this.option.isFilterEventListenterEnabled) {
-      viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, this.onFilterSelection.bind(this));
-    }
+    // // en/disable filter events
+    // if (this.option.isFilterEventListenterEnabled) {
+    //   viz.addEventListener(tableau.TableauEventName.FILTER_CHANGE, this.onFilterSelection.bind(this));
+    // }
 
     // create embeddedViz object
     let vizObject = viz;
