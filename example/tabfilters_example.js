@@ -13,7 +13,6 @@ var vizOptions = {
 };
 
 // // called after DOM is ready using jquery ready()
-
 // $(document).ready(function() {
 //
 //   // initialize tabfilters object once DOM ready
@@ -21,19 +20,19 @@ var vizOptions = {
 //
 //   // an array to hold each of the viz urls and divs
 //   let vizzesToLoadArray = [{
-//       vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Overview',
+//       vizUrl: 'https://public.tableau.com/views/tabfilters_example/Overview',
 //       vizContainerDiv: document.getElementById("vizContainer1")
 //     },
 //     {
-//       vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Product',
+//       vizUrl: 'https://public.tableau.com/views/tabfilters_example/Product',
 //       vizContainerDiv: document.getElementById("vizContainer2")
 //     },
 //     {
-//       vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Customers',
+//       vizUrl: 'https://public.tableau.com/views/tabfilters_example/Customers',
 //       vizContainerDiv: document.getElementById("vizContainer3")
 //     },
 //     {
-//       vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Shipping',
+//       vizUrl: 'https://public.tableau.com/views/tabfilters_example/Shipping',
 //       vizContainerDiv: document.getElementById("vizContainer4")
 //     }
 //   ];
@@ -54,19 +53,19 @@ function initializeAllVizzes() {
 
   // an array to hold each of the viz urls and divs
   let vizzesToLoadArray = [{
-      vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Overview',
+      vizUrl: 'https://public.tableau.com/views/tabfilters_example/Overview',
       vizContainerDiv: document.getElementById("vizContainer1")
     },
     {
-      vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Product',
+      vizUrl: 'https://public.tableau.com/views/tabfilters_example/Product',
       vizContainerDiv: document.getElementById("vizContainer2")
     },
     {
-      vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Customers',
+      vizUrl: 'https://public.tableau.com/views/tabfilters_example/Customers',
       vizContainerDiv: document.getElementById("vizContainer3")
     },
     {
-      vizUrl: 'https://demo.tableau.com/t/tableau/views/SuperstoreFiltersTest/Shipping',
+      vizUrl: 'https://public.tableau.com/views/tabfilters_example/Shipping',
       vizContainerDiv: document.getElementById("vizContainer4")
     }
   ];

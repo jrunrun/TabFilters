@@ -1,9 +1,3 @@
-// test globals
-// var modes = ["page", "viz", "sheet"];
-// var modes = ["page", "viz"];
-// var regions = ["East", "West", "Central", "South"];
-// var vizzes = ["Product", "Customers", "Shipping", "Overview"];
-
 // filter object factory for testing (raondomizes the object properties)
 function filterObjectFactory(templateObj) {
 
@@ -78,7 +72,6 @@ async function testFilters(n, filterTemplate) {
 }
 
 
-
 async function resetAllVizzes() {
   let promiseArray = [];
   for (var i = 0; i < filters.embeddedVizzes.length; i++) {
@@ -89,68 +82,6 @@ async function resetAllVizzes() {
   console.log("data", data);
 }
 
-
-
-var filter_categorical_page = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Region",
-    updateType: "ALL"
-  }
-};
-
-var filter_clear_region = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Region",
-    updateType: "CLEAR"
-  }
-};
-
-var filter_clear_category = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Category",
-    updateType: "CLEAR"
-  }
-};
-
-var filter_categorical_page_1 = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Category",
-    updateType: "ALL"
-  }
-};
-
-var filter_categorical_page_filter_does_not_exist = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Justin",
-    updateType: "ALL"
-  }
-};
-
-var filterValues = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Category",
-    updateType: "REPLACE",
-    values: ["Furniture", "Technology"]
-  }
-};
 
 var filterTemplate = {
   scope: {
@@ -164,115 +95,6 @@ var filterTemplate = {
     values: ["East", "West"]
   }
 };
-
-var filter_categorical_sheet = {
-  scope: {
-    mode: "sheet",
-    // array of target vizzes
-    targetArray: [{
-        viz: "Customers",
-        sheetsArray: ["CustomerOverview", "CustomerScatter"]
-      },
-      {
-        viz: "Shipping",
-        sheetsArray: ["DaystoShip", "ShipSummary"]
-      }
-    ]
-  },
-  filter: {
-    fieldName: "Region",
-    updateType: "REPLACE",
-    values: ["East", "West"]
-  }
-};
-
-var filter_quantitative_page_1 = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "AGG(Profit Ratio)",
-    updateType: "ALL"
-  }
-};
-
-
-var filter_quantitative_page_3 = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "AGG(Profit Ratio)",
-    updateType: "REPLACE",
-    values: {
-      min: .15,
-      max: .72,
-      nullOption: "allValues"
-      // nullOption: tableau.NullOption.ALL_VALUES
-      // NULL_VALUES: "nullValues", NON_NULL_VALUES: "nonNullValues", ALL_VALUES: "allValues"
-    }
-  }
-};
-
-var filter_quantitative_page_2 = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Order Date",
-    updateType: "REPLACE",
-    values: {
-      min: new Date(Date.UTC(2018, 3, 1)),
-      max: new Date(Date.UTC(2018, 6, 1))
-    }
-
-  }
-};
-
-
-
-
-
-// is the anchorDate required or optional
-var filter_relativeDate_page_4 = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Order Date #2",
-    updateType: "replace",
-    values: {
-      anchorDate: new Date(Date.UTC(2018, 5, 1)),
-      periodType: "quarter",
-      rangeType: 'lastn',
-      rangeN: 5
-    }
-
-  }
-};
-
-var filter_clear_relativeDate_page = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Order Date #2",
-    updateType: "clear"
-  }
-};
-
-// left off here 2/13 @ 3am
-var filter_clear = {
-  scope: {
-    mode: "page"
-  },
-  filter: {
-    fieldName: "Order Date #2",
-    updateType: "CLEAR"
-  }
-};
-
-
 
 var filterTemplate2 = {
   scope: {
