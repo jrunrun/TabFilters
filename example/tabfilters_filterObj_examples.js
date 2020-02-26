@@ -3,7 +3,7 @@
 
 // The filter will apply to the "CustomerOverview" and "CustomerScatter" sheets on the "Customers" viz and to  "DaystoShip" and "ShipSummary" sheets on the "Shipping" viz.
 
-var applyFilterObj_sheetExample = {
+var applyFilterObj_categorical_sheetExample = {
   scope: {
     mode: "sheet",
     targetArray: [{
@@ -28,7 +28,7 @@ var applyFilterObj_sheetExample = {
 
 // "Customers" and "Product" are the target vizzes. The filter will apply to all sheets contained within the each of those vizzes that include the filter.fieldName "Region".
 
-var applyFilterObj_vizExample = {
+var applyFilterObj_categorical_vizExample = {
   scope: {
     mode: "viz",
     targetArray: ["Customers", "Product"]
@@ -45,7 +45,7 @@ var applyFilterObj_vizExample = {
 
 // The filter will apply to all vizzes and sheets contained on the hosting page that include the filter.fieldName "Region".
 
-var applyFilterObj_pageExample = {
+var applyFilterObj_categorical_pageExample = {
   scope: {
     mode: "page"
   },
@@ -53,5 +53,48 @@ var applyFilterObj_pageExample = {
     fieldName: "Region",
     updateType: "replace",
     values: ["East", "West"]
+  }
+};
+
+// See Tableau Online Help for RelativeDateFilterOptions
+// https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm?#relativedatefilteroptions_record
+
+// possible values for rangeType (based off of tableau.DateRangeType)
+// "last", "lastn", "next", "nextn", "curr" and "todate"
+
+// possible values for periodType (based off of tableau.PeriodType)
+// "year", "quarter", "month", "week", "day", "hour", "minute" and "second"
+
+// anchorDate is optional
+// rangeN
+var applyFilterObj__relativeDate_pageExample = {
+  scope: {
+    mode: "page"
+  },
+  filter: {
+    fieldName: "Order Date (relative date filter)",
+    values: {
+      anchorDate: new Date(Date.UTC(2016, 1, 1)),
+      periodType: "quarter",
+      rangeType: "lastn",
+      rangeN: 8
+    }
+  }
+};
+
+// possible values for nullOption (based off of tableau.NullOption)
+// "nullValues", "nonNullValues" and "allValues"
+
+var applyFilterObj__rangeFilter_pageExample = {
+  scope: {
+    mode: "page"
+  },
+  filter: {
+    fieldName: "AGG(Profit Ratio)",
+    values: {
+      nullOption: "nonNullValues",
+      min: -.141,
+      max: .214
+    }
   }
 };
