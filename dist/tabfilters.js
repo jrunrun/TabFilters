@@ -1,4 +1,4 @@
-// filter library to interface the Tableau JS API
+// filter library for the Tableau JS API
 // author: Justin Crayraft
 // email: jcraycraft@tableau.com
 
@@ -224,9 +224,6 @@ class TabFilters {
     let filterType;
     let promiseArray = [];
 
-    // console.log("filterObj", filterObj);
-    // console.log("updateMode", filterObj.scope.mode);
-
     // route filter update by scope.mode (PAGE, VIZ OR SHEET)
     switch (filterObj.scope.mode) {
       case this.vizUpdateMode.PAGE:
@@ -315,137 +312,156 @@ class TabFilters {
       // route the filters by filterType
       switch (filterType) {
         case "categorical":
-          // tableau.FilterUpdateType applies to this filter type
-          for (i = 0; i < filterToApplyArray.length; i++) {
-            let filterToApply = filterToApplyArray[i];
-            // let promise = this._sendFilterValuesToTableau(filterToApply, filterType, filterObj.filter.updateType, filterObj.filter.values);
-            let promise = this._sendCategoricalFilters(filterToApply, filterObj.filter.updateType, filterObj.filter.values);
-            promiseArray.push(promise);
-            console.log("filterToApply", filterToApply);
-          }
+          this._sendCategoricalFilters(filterToApplyArray, filterObj.filter.updateType, filterObj.filter.values);
+          console.log(filterToApplyArray);
+          console.log(filterObj.filter.updateType);
+          console.log(filterObj.filter.values);
           break;
 
         case "quantitative":
-          for (i = 0; i < filterToApplyArray.length; i++) {
-            let filterToApply = filterToApplyArray[i];
-            let promise = this._sendRangeFilters(filterToApply, filterObj.filter.values);
-            promiseArray.push(promise);
-            console.log("filterToApply", filterToApply);
-          }
-          break;
-
-          // future: test this with cube data as this is not intended for relational data structures
-          // also, per online help, the filter values require the full hierarchical name (e.g. [Product].[All Product].[Espresso])
-          // https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_concepts_filtering.htm
-        case "hierarchical":
-          // tableau.FilterUpdateType applies to this filter type
-          for (i = 0; i < filterToApplyArray.length; i++) {
-            let filterToApply = filterToApplyArray[i];
-            let promise = this._sendHierarchicalFilters(filterToApply, filterObj.filter.updateType, filterObj.filter.values);
-            promiseArray.push(promise);
-            console.log("filterToApply", filterToApply);
-          }
+          this._sendRangeFilters(filterToApplyArray, filterObj.filter.values);
           break;
 
         case "relativedate":
-          for (i = 0; i < filterToApplyArray.length; i++) {
-            let filterToApply = filterToApplyArray[i];
-            let promise = this._sendRelativeDateFilters(filterToApply, filterObj.filter.values);
-            promiseArray.push(promise);
-            console.log("filterToApply", filterToApply);
-          }
+          this._sendRelativeDateFilters(filterToApplyArray, filterObj.filter.values);
+          break;
+
+        case "hierarchical":
+          // future: test this with cube data as this is not intended for relational data structures
+          // also, per online help, the filter values require the full hierarchical name (e.g. [Product].[All Product].[Espresso])
+          // https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_concepts_filtering.htm
+          this._sendHierarchicalFilters(filterToApplyArray, filterObj.filter.updateType, filterObj.filter.values);
           break;
       }
 
     }
-
-    // TEST: do promise.all down in the send functions
-
-
     // https://stackoverflow.com/questions/35612428/call-async-await-functions-in-parallel
-    // const [data1, data2, data3, data4] = await Promise.all(promiseArray);
-    const data = await Promise.all(promiseArray);
+
+  }
+
+  // *** NEED TO ADD ALL OPTIONS, NULL STUFF, INCLUDE/EXCLUDE -- SEE ONLINE HELP ****
+
+  // internal/helper function to clear Tableau filters
+  async _sendClearFilters(filterToApplyArray) {
+    let j;
+    let i;
+    let promise;
+    let promiseInnerArray = [];
+    let promiseOuterArray = [];
+
+    for (i = 0; i < filterToApplyArray.length; i++) {
+
+      for (j = 0; j < filterToApplyArray[i].targetWorksheets.length; j++) {
+        promise = filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApplyArray[i].filterFieldName);
+        promiseInnerArray.push(promise);
+      }
+      promiseOuterArray = promiseOuterArray.concat(promiseInnerArray);
+      promiseInnerArray = [];
+
+    }
+
+    const data = await Promise.all(promiseOuterArray);
     console.log("data", data);
 
   }
 
-  // // *** NEED TO ADD ALL OPTIONS, NULL STUFF, INCLUDE/EXCLUDE -- SEE ONLINE HELP ****
-
-
-
-
-  // future: add options
-  // future: add a clear all filters (adjusted to scope.mode and scope.targetArray)
-  async _sendClearFilters(filterToApply) {
+  // internal/helper function to send Categorical filters to Tableau
+  // supports tableau.FilterUpdateType
+  async _sendCategoricalFilters(filterToApplyArray, updateType, values) {
     let j;
+    let i;
     let promise;
-    let promiseArray = [];
+    let promiseInnerArray = [];
+    let promiseOuterArray = [];
 
-    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
-      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.clearFilterAsync(filterToApply.filterFieldName);
-      promiseArray.push(promise);
+    for (i = 0; i < filterToApplyArray.length; i++) {
+
+      for (j = 0; j < filterToApplyArray[i].targetWorksheets.length; j++) {
+        promise = filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApplyArray[i].filterFieldName, values, updateType);
+        promiseInnerArray.push(promise);
+      }
+      promiseOuterArray = promiseOuterArray.concat(promiseInnerArray);
+      promiseInnerArray = [];
+
     }
-    return await promiseArray;
-    // break;
 
-  }
-
-  async _sendCategoricalFilters(filterToApply, updateType, values) {
-    // supports tableau.FilterUpdateType
-    let j;
-    let promise;
-    let promiseArray = [];
-    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
-      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyFilterAsync(filterToApply.filterFieldName, values, updateType);
-      promiseArray.push(promise);
-    }
-    return await promiseArray;
-
-  }
-
-  // internal/helper function to send RelativeDate filters Tableau
-  async _sendRelativeDateFilters(filterToApply, values) {
-    let j;
-    let promise;
-    let promiseArray = [];
-
-    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
-      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApply.filterFieldName, values);
-      promiseArray.push(promise);
-    }
-    return await promiseArray;
-    // break;
-
-  }
-
-  // internal/helper function to send Hierarchical filters Tableau
-  async _sendHierarchicalFilters(filterToApply, updateType, values) {
-    // supports tableau.FilterUpdateType
-    let j;
-    let promise;
-    let promiseArray = [];
-
-    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
-      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApply.filterFieldName, values, updateType);
-      promiseArray.push(promise);
-    }
-    return await promiseArray;
-    // break;
+    const data = await Promise.all(promiseOuterArray);
+    console.log("data", data);
 
   }
 
   // internal/helper function to send Range filters Tableau
-  async _sendRangeFilters(filterToApply, values) {
+  async _sendRangeFilters(filterToApplyArray, values) {
     let j;
+    let i;
     let promise;
-    let promiseArray = [];
+    let promiseInnerArray = [];
+    let promiseOuterArray = [];
 
-    for (j = 0; j < filterToApply.targetWorksheets.length; j++) {
-      promise = filterToApply.targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApply.filterFieldName, values);
-      promiseArray.push(promise);
+    for (i = 0; i < filterToApplyArray.length; i++) {
+
+      for (j = 0; j < filterToApplyArray[i].targetWorksheets.length; j++) {
+        promise = filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRangeFilterAsync(filterToApplyArray[i].filterFieldName, values);
+        promiseInnerArray.push(promise);
+      }
+      promiseOuterArray = promiseOuterArray.concat(promiseInnerArray);
+      promiseInnerArray = [];
+
     }
-    return await promiseArray;
-    // break;
+
+    const data = await Promise.all(promiseOuterArray);
+    console.log("data", data);
+
+  }
+
+  // internal/helper function to send Relative Date filters to Tableau
+  async _sendRelativeDateFilters(filterToApplyArray, values) {
+    let j;
+    let i;
+    let promise;
+    let promiseInnerArray = [];
+    let promiseOuterArray = [];
+
+
+    for (i = 0; i < filterToApplyArray.length; i++) {
+
+      for (j = 0; j < filterToApplyArray[i].targetWorksheets.length; j++) {
+        promise = filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyRelativeDateFilterAsync(filterToApplyArray[i].filterFieldName, values);
+        promiseInnerArray.push(promise);
+      }
+      promiseOuterArray = promiseOuterArray.concat(promiseInnerArray);
+      promiseInnerArray = [];
+
+    }
+
+    const data = await Promise.all(promiseOuterArray);
+    console.log("data", data);
+
+  }
+
+  // internal/helper function to send Hierarchical filters to Tableau
+  // supports tableau.FilterUpdateType
+  async _sendHierarchicalFilters(filterToApplyArray, updateType, values) {
+    let j;
+    let i;
+    let promise;
+    let promiseInnerArray = [];
+    let promiseOuterArray = [];
+
+
+    for (i = 0; i < filterToApplyArray.length; i++) {
+
+      for (j = 0; j < filterToApplyArray[i].targetWorksheets.length; j++) {
+        promise = filterToApplyArray[i].targetWorksheets[j].targetWorksheetObject.applyHierarchicalFilterAsync(filterToApplyArray[i].filterFieldName, values, updateType);
+        promiseInnerArray.push(promise);
+      }
+      promiseOuterArray = promiseOuterArray.concat(promiseInnerArray);
+      promiseInnerArray = [];
+
+    }
+
+    const data = await Promise.all(promiseOuterArray);
+    console.log("data", data);
 
   }
 

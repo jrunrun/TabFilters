@@ -61,10 +61,28 @@ async function testFilters(n, filterTemplate) {
     (function(i) {
       setTimeout(function() {
         filterObj = filterObjectFactory(filterTemplate);
-        console.log("filter.scope.mode", filterObj.scope.mode);
-        console.log("filter.scope.targetArray", filterObj.scope.targetArray);
-        console.log("filter.filter.values", filterObj.filter.values);
+        console.log("filterObj", filterObj);
         filters.applyFilters(filterObj);
+      }, 5000 * i);
+    }(i));
+  }
+
+}
+
+// filter tester that runs n number of times with a delay of 5 seconds between executions
+async function testFilterTypes(array) {
+  for (var i = 1; i < array.length; i++) {
+
+    // on first execution, reset all the vizzes (clear any lingering filters/states)
+    if (i === 1) {
+      await resetAllVizzes();
+      filters.applyFilters(array[i]);
+    }
+
+    (function(i) {
+      setTimeout(function() {
+
+        filters.applyFilters(array[i]);
       }, 5000 * i);
     }(i));
   }
