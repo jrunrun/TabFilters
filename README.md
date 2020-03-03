@@ -20,7 +20,7 @@ TabFilters is fairly plug-n-play. It will automatically discover your filters (a
 
 Code in HTML file:
 
-'''HTML
+```html
 <body onload="initializeFilters();">
 
 <script>
@@ -31,11 +31,11 @@ function initializeFilters(){
 }
 </script>
 
-'''
+```
 
 4. Initialize Viz object, by calling the Viz constructor and passing a reference to the div container on the HTML page, the URL of the visualization on Tableau Server, and a set of options. See below example, and note the onFirstInteractive callback function. Note: you will do this for each visualization on the page.
 
-'''JavaScript
+```javascript
 
 
 var placeholderDiv = document.getElementById("tableauViz");
@@ -51,11 +51,11 @@ var options = {
 
 var viz = new tableau.Viz(placeholderDiv, url, options);
 
-'''
+```
 
 5. Initialize tabfilters by passing in the Viz object once it's been fully initialized. To do this, call the tabfilters discovery method using the onFirstInteractive callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page.
 
-'''JavaScript
+```javascript
 
 async function defaultOnFirstInteractive(v) {
   viz = v.getViz();
@@ -65,13 +65,13 @@ async function defaultOnFirstInteractive(v) {
 
 }
 
-'''
+```
 
 6. Apply filters by calling tabfilters.applyFilters(filterObj) method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
 * For example, the filter object for applying a filter called "Region" with values "East" and "West" to "CustomerOverview" and "CustomerScatter" worksheets on the "Customer" viz and "DaystoShip" and "ShipSummary" on the "Shipping" viz would like this:
 
-'''JavaScript
+```javascript
 var filterObject = {
   scope: {
     mode: "sheet",
@@ -91,11 +91,11 @@ var filterObject = {
     values: ["East", "West"]
   }
 };
-'''
+```
 
 * For example, the filter object for applying a filter called "Region" with values "East" and "West" to all worksheets on the "Customers" and "Product" visualizations would like this:
 
-'''JavaScript
+```javascript
 var filterObject = {
   scope: {
     mode: "viz",
@@ -107,11 +107,11 @@ var filterObject = {
     values: ["East", "West"]
   }
 };
-'''
+```
 
 * For example, the filter object for applying a filter called "Category" with values "Furniture" and "Office Supplies" to all visualizations on the page would like this:
 
-'''JavaScript
+```javascript
 var filterObject = {
   scope: {
     mode: "page"
@@ -122,13 +122,13 @@ var filterObject = {
     values: ["Furniture", "Office Supplies"]
   }
 };
-'''
+```
 
 * Note: there are four valid types of filters that are supported by the Tableau JS API. This includes: categorical, quantitative, hierarchical and relative_date. The filterObject sub-object called filter will look different for each type. Note that there are nullOption and anchorDate are optional. Please refer to Tableau JS API documentation for specific filter options by type (e.g. NullOption for quantitative and anchorDate for relative_date) and various enumerations for properties such as periodType, rangeType, etc.
 
 * For example, the filter object quantitative will look like this:
 
-'''JavaScript
+```javascript
 var filterObject = {
   scope: {
     mode: "page"
@@ -142,11 +142,11 @@ var filterObject = {
     }
   }
 };
-'''
+```
 
 For example, the filter object relative_date will look like this:
 
-'''JavaScript
+```javascript
 var filterObject = {
   scope: {
     mode: "page"
@@ -161,13 +161,13 @@ var filterObject = {
     }
   }
 };
-'''
+```
 
 7. Apply parameters by calling tabfilters.applyParameters(parameterObj) method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
 * For example, the parameter object for applying values to a parameter called "Region Filter (Wildcard via Parameter)" with a value of "w" to the "Customers" and "Overview" visualizations would like this:
 
-'''JavaScript
+```javascript
 var parameterObj = {
   scope: {
     mode: "viz",
@@ -178,11 +178,11 @@ var parameterObj = {
     values: "w"
   }
 };
-'''
+```
 
 * For example, the parameter object for applying values to a parameter called "Region Filter (Wildcard via Parameter)" with a value of "e" to all visualizations on the page would like this:
 
-'''JavaScript
+```javascript
 // this works
 var parameterObj = {
   scope: {
@@ -193,14 +193,13 @@ var parameterObj = {
     values: "e"
   }
 };
-
-'''
+```
 
 8. Getting the filter (or parameter) metadata such as the domain values is contained within the tabfilters object. I have not had a chance to create the appropriate getter methods. However, this should be fairly trivial to retrieve.
 
 * To get the filters metadata, traverse the array of filter objects in each of the appropriate tabfilters.embeddedVizzes[].filters array. This includes the domain values, which worksheet(s) the filter is applied to and other relevant information. You can access this via the console. It will look something like this:
 
-'''JavaScript
+```javascript
 filterFieldName: "Region"
 filterObject:
 filterFieldType: "categorical"
@@ -213,11 +212,11 @@ filterDomainValues: Array(4)
 1: {id: 1, text: "East", tableauRawValue: "East"}
 2: {id: 2, text: "South", tableauRawValue: "South"}
 3: {id: 3, text: "West", tableauRawValue: "West"}
-'''
+```
 
 * To get the parameters metadata, traverse the array of filter objects in each of the appropriate tabfilters.embeddedVizzes[].parameters array. This includes the data type, allowable values and other relevant information. You can access this via the console. It will look something like this:
 
-'''JavaScript
+```javascript
 parameters: Array(9)
 0: {parameterObject: g…l.t…e.P…r.ss.m…e.getName, parameterCurrentValue: {…}, parameterName: "Commission Rate", parameterDataType: "float", parameterAllowableValuesType: "range", …}
 1: {parameterObject: g…l.t…e.P…r.ss.m…e.getName, parameterCurrentValue: {…}, parameterName: "New Quota", parameterDataType: "integer", parameterAllowableValuesType: "range", …}
@@ -233,4 +232,4 @@ parameterMaxValue: null
 parameterStepSize: null
 parameterStepPeriod: null
 targetWorkbook: {targetWorkbookName: "tabfilters_v3", targetWorkbookObject: g…l.t…e.W…k.ss.m…e.getViz}
-'''
+```
