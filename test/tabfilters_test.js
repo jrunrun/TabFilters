@@ -61,10 +61,32 @@ async function testFilters(n, filterTemplate) {
     (function(i) {
       setTimeout(function() {
         filterObj = filterObjectFactory(filterTemplate);
-        console.log("filter.scope.mode", filterObj.scope.mode);
-        console.log("filter.scope.targetArray", filterObj.scope.targetArray);
-        console.log("filter.filter.values", filterObj.filter.values);
-        filters.applyFilters(filterObj);
+        console.log("filter values sent!");
+        console.log("filterObj.scope:", filterObj.scope);
+        console.log("filterObj.filter.fieldName:", filterObj.filter.fieldName);
+        console.log("filterObj.filter.values:", filterObj.filter.values);
+        console.log("");
+        tabfilters.applyFilters(filterObj);
+      }, 3500 * i);
+    }(i));
+  }
+
+}
+
+// filter tester that runs n number of times with a delay of 5 seconds between executions
+async function testFilterTypes(array) {
+  for (var i = 1; i < array.length; i++) {
+
+    // on first execution, reset all the vizzes (clear any lingering filters/states)
+    if (i === 1) {
+      await resetAllVizzes();
+      tabfilters.applyFilters(array[i]);
+    }
+
+    (function(i) {
+      setTimeout(function() {
+
+        tabfilters.applyFilters(array[i]);
       }, 5000 * i);
     }(i));
   }
@@ -74,12 +96,12 @@ async function testFilters(n, filterTemplate) {
 
 async function resetAllVizzes() {
   let promiseArray = [];
-  for (var i = 0; i < filters.embeddedVizzes.length; i++) {
-    let promise = filters.embeddedVizzes[i].vizObject.revertAllAsync();
+  for (var i = 0; i < tabfilters.embeddedVizzes.length; i++) {
+    let promise = tabfilters.embeddedVizzes[i].vizObject.revertAllAsync();
     promiseArray.push(promise);
   }
   let data = await Promise.all(promiseArray);
-  console.log("data", data);
+  // console.log("data", data);
 }
 
 

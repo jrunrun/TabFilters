@@ -3,7 +3,7 @@
 
 // The filter will apply to the "CustomerOverview" and "CustomerScatter" sheets on the "Customers" viz and to  "DaystoShip" and "ShipSummary" sheets on the "Shipping" viz.
 
-var applyFilterObj_categorical_sheetExample = {
+var categorical_sheetExample = {
   scope: {
     mode: "sheet",
     targetArray: [{
@@ -28,7 +28,7 @@ var applyFilterObj_categorical_sheetExample = {
 
 // "Customers" and "Product" are the target vizzes. The filter will apply to all sheets contained within the each of those vizzes that include the filter.fieldName "Region".
 
-var applyFilterObj_categorical_vizExample = {
+var categorical_vizExample = {
   scope: {
     mode: "viz",
     targetArray: ["Customers", "Product"]
@@ -45,7 +45,7 @@ var applyFilterObj_categorical_vizExample = {
 
 // The filter will apply to all vizzes and sheets contained on the hosting page that include the filter.fieldName "Region".
 
-var applyFilterObj_categorical_pageExample = {
+var categorical_pageExample_1 = {
   scope: {
     mode: "page"
   },
@@ -55,6 +55,19 @@ var applyFilterObj_categorical_pageExample = {
     values: ["East", "West"]
   }
 };
+
+// temp testing filter object that contains filter field that only exists on single Viz
+var categorical_pageExample_2 = {
+  scope: {
+    mode: "page"
+  },
+  filter: {
+    fieldName: "Category",
+    updateType: "replace",
+    values: ["Furniture", "Office Supplies"]
+  }
+};
+
 
 // See Tableau Online Help for RelativeDateFilterOptions
 // https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm?#relativedatefilteroptions_record
@@ -67,14 +80,14 @@ var applyFilterObj_categorical_pageExample = {
 
 // anchorDate is optional
 // rangeN
-var applyFilterObj__relativeDate_pageExample = {
+var relativeDate_pageExample = {
   scope: {
     mode: "page"
   },
   filter: {
     fieldName: "Order Date (relative date filter)",
     values: {
-      anchorDate: new Date(Date.UTC(2016, 1, 1)),
+      // anchorDate: new Date(Date.UTC(2016, 1, 1)),
       periodType: "quarter",
       rangeType: "lastn",
       rangeN: 8
@@ -85,7 +98,7 @@ var applyFilterObj__relativeDate_pageExample = {
 // possible values for nullOption (based off of tableau.NullOption)
 // "nullValues", "nonNullValues" and "allValues"
 
-var applyFilterObj__rangeFilter_pageExample = {
+var rangeFilter_pageExample = {
   scope: {
     mode: "page"
   },
@@ -93,8 +106,46 @@ var applyFilterObj__rangeFilter_pageExample = {
     fieldName: "AGG(Profit Ratio)",
     values: {
       nullOption: "nonNullValues",
-      min: -.141,
-      max: .214
+      min: -.167,
+      max: .245
     }
   }
 };
+
+// // this scope is unlikely, but it's possible the same parameter name exists on multiple workbooks embedded in same page
+// var parameter_Example_1 = {
+//   scope: {
+//     mode: "workbook",
+//     targetArray: ["tabfilters_v3"]
+//   },
+//   parameter: {
+//     parameterName: "Region Filter (Wildcard via Parameter)",
+//     values: "w"
+//   }
+// };
+
+// testing this now
+var parameter_Example_2 = {
+  scope: {
+    mode: "viz",
+    targetArray: ["Customers", "Overview"]
+  },
+  parameter: {
+    parameterName: "Region Filter (Wildcard via Parameter)",
+    values: "w"
+  }
+};
+
+// this works
+var parameter_Example_3 = {
+  scope: {
+    mode: "page"
+  },
+  parameter: {
+    parameterName: "Region Filter (Wildcard via Parameter)",
+    values: "w"
+  }
+};
+
+
+var filtersArray = [categorical_pageExample_1, categorical_pageExample_2, rangeFilter_pageExample, relativeDate_pageExample];
