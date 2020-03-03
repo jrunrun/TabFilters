@@ -182,7 +182,6 @@ class TabFilters {
           break;
 
         case 'relativedate':
-          console.log("tempNewFilterInfoObj.filterObject @ #181", tempNewFilterInfoObj.filterObject);
           let temp_period = tempNewFilterInfoObj.filterObject.getPeriod();
           let temp_range = tempNewFilterInfoObj.filterObject.getRange();
           let temp_rangeN = tempNewFilterInfoObj.filterObject.getRangeN();
@@ -198,7 +197,6 @@ class TabFilters {
 
     // parameters discovery
     const parametersArray = await this._getParameters(workbookObject);
-    console.log("parametersArray", parametersArray);
 
     for (let i = 0; i < parametersArray.length; i++) {
       let parameterMinValue = null;
@@ -218,7 +216,6 @@ class TabFilters {
         parameterMaxValue = parametersArray[i].getMaxValue();
         parameterStepSize = parametersArray[i].getStepSize();
         if (parameterDataType === "date" || parameterDataType === "datetime") {
-          console.log("datetime parameter", parameterName);
           parameterStepPeriod = parametersArray[i].getDateStepPeriod();
         }
 
@@ -309,7 +306,7 @@ class TabFilters {
     }
 
     const data = await Promise.all(promiseArray);
-    console.log("data", data);
+    // console.log("data", data);
 
   }
 
@@ -404,7 +401,6 @@ class TabFilters {
         let filterToApply = filterToApplyArray[i];
         let promise = this._sendClearFilters(filterToApply, filterObj.filter.values);
         promiseArray.push(promise);
-        console.log("filterToApply", filterToApply);
       }
 
     } else {
@@ -412,9 +408,6 @@ class TabFilters {
       switch (filterType) {
         case "categorical":
           this._sendCategoricalFilters(filterToApplyArray, filterObj.filter.updateType, filterObj.filter.values);
-          console.log("filterToApplyArray", filterToApplyArray);
-          console.log(filterObj.filter.updateType);
-          console.log(filterObj.filter.values);
           break;
 
         case "quantitative":
@@ -460,7 +453,7 @@ class TabFilters {
     }
 
     const data = await Promise.all(promiseOuterArray);
-    console.log("data", data);
+    // console.log("data", data);
 
   }
 
@@ -485,7 +478,7 @@ class TabFilters {
     }
 
     const data = await Promise.all(promiseOuterArray);
-    console.log("data", data);
+    // console.log("data", data);
 
   }
 
@@ -509,7 +502,7 @@ class TabFilters {
     }
 
     const data = await Promise.all(promiseOuterArray);
-    console.log("data", data);
+    // console.log("data", data);
 
   }
 
@@ -534,7 +527,7 @@ class TabFilters {
     }
 
     const data = await Promise.all(promiseOuterArray);
-    console.log("data", data);
+    // console.log("data", data);
 
   }
 
@@ -560,7 +553,7 @@ class TabFilters {
     }
 
     const data = await Promise.all(promiseOuterArray);
-    console.log("data", data);
+    // console.log("data", data);
 
   }
 
