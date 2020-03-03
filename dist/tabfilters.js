@@ -7,8 +7,6 @@ class TabFilters {
   constructor() {
     // future: option to add additional metadata (e.g. label, index, etc.) to filter values in order to satisfy any interesting 3rd-party UI button requirements
     this.option;
-    // for testing; delete later
-    this.testing;
     this.embeddedVizzes = [];
     this.vizUpdateMode = {
       PAGE: "page",
@@ -22,6 +20,7 @@ class TabFilters {
   // filter discovery at initialization
   async discovery(viz, option) {
     let filters = [];
+    let parameters = [];
     let embeddedViz = {};
 
     // future: filter events
@@ -51,6 +50,7 @@ class TabFilters {
     let vizDomNode = vizObject.getParentElement();
     let vizUrl = vizObject.getUrl();
     let workbookObject = vizObject.getWorkbook();
+    let workbookName = workbookObject.getName();
     let activeSheetObject = workbookObject.getActiveSheet();
     let activeSheetName = activeSheetObject.getName();
     let activeSheetType = activeSheetObject.getSheetType();
@@ -60,6 +60,7 @@ class TabFilters {
       vizDomNode: vizDomNode,
       vizUrl: vizUrl,
       workbookObject: workbookObject,
+      workbookName: workbookName,
       activeSheetObject: activeSheetObject,
       activeSheetName: activeSheetName,
       activeSheetType: activeSheetType
@@ -182,7 +183,6 @@ class TabFilters {
 
         case 'relativedate':
           console.log("tempNewFilterInfoObj.filterObject @ #181", tempNewFilterInfoObj.filterObject);
-          this.testing = tempNewFilterInfoObj.filterObject;
           let temp_period = tempNewFilterInfoObj.filterObject.getPeriod();
           let temp_range = tempNewFilterInfoObj.filterObject.getRange();
           let temp_rangeN = tempNewFilterInfoObj.filterObject.getRangeN();
@@ -196,6 +196,56 @@ class TabFilters {
 
     }
 
+    // parameters discovery
+    const parametersArray = await this._getParameters(workbookObject);
+    console.log("parametersArray", parametersArray);
+
+    for (let i = 0; i < parametersArray.length; i++) {
+      let parameterMinValue = null;
+      let parameterMaxValue = null;
+      let parameterStepSize = null;
+      let parameterStepPeriod = null;
+      let parameterObject = parametersArray[i];
+      let parameterCurrentValue = parametersArray[i].getCurrentValue();
+      let parameterName = parametersArray[i].getName();
+      let parameterDataType = parametersArray[i].getDataType();
+      let parameterAllowableValuesType = parametersArray[i].getAllowableValuesType();
+      let parameterAllowableValues = parametersArray[i].getAllowableValues();
+
+
+      if (parameterAllowableValuesType === "range") {
+        parameterMinValue = parametersArray[i].getMinValue();
+        parameterMaxValue = parametersArray[i].getMaxValue();
+        parameterStepSize = parametersArray[i].getStepSize();
+        if (parameterDataType === "date" || parameterDataType === "datetime") {
+          console.log("datetime parameter", parameterName);
+          parameterStepPeriod = parametersArray[i].getDateStepPeriod();
+        }
+
+      }
+
+      parameters.push({
+        parameterObject: parameterObject,
+        parameterCurrentValue: parameterCurrentValue,
+        parameterName: parameterName,
+        parameterDataType: parameterDataType,
+        parameterAllowableValuesType: parameterAllowableValuesType,
+        parameterAllowableValues: parameterAllowableValues,
+        parameterMinValue: parameterMinValue,
+        parameterMaxValue: parameterMaxValue,
+        parameterStepSize: parameterStepSize,
+        parameterStepPeriod: parameterStepPeriod,
+        targetWorkbook: {
+          targetWorkbookName: workbookName,
+          targetWorkbookObject: workbookObject
+        }
+      });
+
+    }
+
+
+
+    embeddedViz.parameters = parameters;
     embeddedViz.filters = filters;
     this.embeddedVizzes.push(embeddedViz);
     return this;
@@ -214,6 +264,55 @@ class TabFilters {
   //   return this;
   //
   // }
+
+
+  async applyParameters(parameterObj) {
+
+    let i;
+    let j;
+    let promise;
+    let promiseArray = [];
+    let parameterArray = [];
+    let vizArray = [];
+    let innerArray = [];
+    let outerArray = [];
+
+
+    switch (parameterObj.scope.mode) {
+
+      case this.vizUpdateMode.PAGE:
+        for (j = 0; j < this.embeddedVizzes.length; j++) {
+          parameterArray = this.embeddedVizzes[j].parameters.filter(p => p.parameterName === parameterObj.parameter.parameterName);
+          innerArray.push(parameterArray[0].targetWorkbook.targetWorkbookObject);
+        }
+        outerArray = outerArray.concat(innerArray);
+        innerArray = [];
+        break;
+
+      case this.vizUpdateMode.VIZ:
+        for (i = 0; i < parameterObj.scope.targetArray.length; i++) {
+          vizArray = this.embeddedVizzes.filter(v => v.activeSheetName === parameterObj.scope.targetArray[i]);
+          for (j = 0; j < vizArray.length; j++) {
+            parameterArray = vizArray[j].parameters.filter(p => p.parameterName === parameterObj.parameter.parameterName);
+            innerArray.push(parameterArray[0].targetWorkbook.targetWorkbookObject);
+          }
+          outerArray = outerArray.concat(innerArray);
+          innerArray = [];
+        }
+        break;
+
+    }
+
+    for (i = 0; i < outerArray.length; i++) {
+      promise = outerArray[i].changeParameterValueAsync(parameterObj.parameter.parameterName, parameterObj.parameter.values);
+      promiseArray.push(promise);
+    }
+
+    const data = await Promise.all(promiseArray);
+    console.log("data", data);
+
+  }
+
 
   // future: need to add all the appropriate filter-type options
   async applyFilters(filterObj) {
@@ -313,7 +412,7 @@ class TabFilters {
       switch (filterType) {
         case "categorical":
           this._sendCategoricalFilters(filterToApplyArray, filterObj.filter.updateType, filterObj.filter.values);
-          console.log(filterToApplyArray);
+          console.log("filterToApplyArray", filterToApplyArray);
           console.log(filterObj.filter.updateType);
           console.log(filterObj.filter.values);
           break;
@@ -476,6 +575,11 @@ class TabFilters {
     const _this = this;
     // add the filterObject onto the normalizedFilters as the last filterObject update / state
     return await obj.getFilterAsync();
+  }
+
+  // internal/helper function to retrieve the parameters from Tableau JS API
+  async _getParameters(obj) {
+    return await obj.getParametersAsync();
   }
 
 }
