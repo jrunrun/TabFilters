@@ -50,7 +50,7 @@ var vizOptions = {
 function initializeAllVizzes() {
 
   // initialize tabfilters object once DOM ready
-  filters = new TabFilters();
+  tabfilters = new TabFilters();
   //
   // // an array to hold each of the viz urls and divs
   // let vizzesToLoadArray = [{
@@ -72,43 +72,43 @@ function initializeAllVizzes() {
   // ];
 
   //
-  // // an array to hold each of the viz urls and divs
-  // let vizzesToLoadArray = [{
-  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v2/Overview',
-  //     vizContainerDiv: document.getElementById("vizContainer1")
-  //   },
-  //   {
-  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v2/Product',
-  //     vizContainerDiv: document.getElementById("vizContainer2")
-  //   },
-  //   {
-  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v2/Customers',
-  //     vizContainerDiv: document.getElementById("vizContainer3")
-  //   },
-  //   {
-  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v2/Shipping',
-  //     vizContainerDiv: document.getElementById("vizContainer4")
-  //   }
-  // ];
-
   // an array to hold each of the viz urls and divs
   let vizzesToLoadArray = [{
-      vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Overview',
+      vizUrl: 'https://demo.tableau.com/t/Tableau/views/SuperstoreforTabFilters/Overview',
       vizContainerDiv: document.getElementById("vizContainer1")
     },
     {
-      vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Product',
+      vizUrl: 'https://demo.tableau.com/t/Tableau/views/SuperstoreforTabFilters/Product',
       vizContainerDiv: document.getElementById("vizContainer2")
     },
     {
-      vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Customers',
+      vizUrl: 'https://demo.tableau.com/t/Tableau/views/SuperstoreforTabFilters/Customers',
       vizContainerDiv: document.getElementById("vizContainer3")
     },
     {
-      vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Shipping',
+      vizUrl: 'https://demo.tableau.com/t/Tableau/views/SuperstoreforTabFilters/Shipping',
       vizContainerDiv: document.getElementById("vizContainer4")
     }
   ];
+
+  // // an array to hold each of the viz urls and divs
+  // let vizzesToLoadArray = [{
+  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Overview',
+  //     vizContainerDiv: document.getElementById("vizContainer1")
+  //   },
+  //   {
+  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Product',
+  //     vizContainerDiv: document.getElementById("vizContainer2")
+  //   },
+  //   {
+  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Customers',
+  //     vizContainerDiv: document.getElementById("vizContainer3")
+  //   },
+  //   {
+  //     vizUrl: 'https://demo.tableau.com/t/Tableau/views/tabfilters_v3/Shipping',
+  //     vizContainerDiv: document.getElementById("vizContainer4")
+  //   }
+  // ];
 
 
   // // an array to hold each of the viz urls and divs
@@ -136,7 +136,7 @@ function initializeViz(vizContainerDiv, vizUrl, vizOptions) {
 
 async function defaultOnFirstInteractive(v) {
   viz = v.getViz();
-  await filters.discovery(viz);
+  await tabfilters.discovery(viz);
   // await filters.parametersDiscovery(viz);
 
 }
