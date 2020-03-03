@@ -1,6 +1,5 @@
 // filter library for the Tableau JS API
 // author: Justin Crayraft
-// email: jcraycraft@tableau.com
 
 class TabFilters {
 
