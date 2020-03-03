@@ -53,7 +53,7 @@ var viz = new tableau.Viz(placeholderDiv, url, options);
 
 ```
 
-5. Initialize tabfilters by passing in the Viz object once it's been fully initialized. To do this, call the tabfilters discovery method using the onFirstInteractive callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page.
+5. Initialize tabfilters by passing in the Viz object once it's been fully initialized. To do this, call the tabfilters discovery method using the onFirstInteractive callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page. Note that the "await" keyword is required before the tabfilters.discovery(viz) as the Tableau JS API is asynchronous.
 
 ```javascript
 
@@ -69,7 +69,22 @@ async function defaultOnFirstInteractive(v) {
 
 6. Apply filters by calling tabfilters.applyFilters(filterObj) method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
-* For example, the filter object for applying a filter called "Region" with values "East" and "West" to "CustomerOverview" and "CustomerScatter" worksheets on the "Customer" viz and "DaystoShip" and "ShipSummary" on the "Shipping" viz would like this:
+* Note that the scope object defines the page, viz or sheets (i.e. target "content" objects) to apply the filter (or parameter) to. The scope.mode property holds the value of page (string), viz (array) and sheet (array). The Tableau JS API has different scopes for filters and parameters. Filters are at the scope of the Tableau JS API workbook object, so it can accept scope.mode values for all three levels: page, viz and sheet. However, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so it accepts scope.mode values for page and viz only.
+
+* The scope.mode definitions are:
+  * page: all visualizations embedded in the page that contain specified filter (or parameter).
+  * viz: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
+  * sheet: specified viz and sheets.
+
+* The scope.mode definitions are:
+  * page: all visualizations embedded in the page that contain specified filter (or parameter).
+  * viz: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
+  * sheet: specified viz and sheets.
+
+
+* For example, the filter object for applying a filter called "Region" with values "East" and "West" to the "CustomerOverview" and "CustomerScatter" worksheets which are located on the "Customers" viz. And this filter also applies to the "DaystoShip" and "ShipSummary" which are located on the "Shipping" viz would look like the following:
+
+* Note you are required to include both scope.mode and scope.targetArray properties, and in this case targetArray is an array of objects that include both viz and sheetsArray:
 
 ```javascript
 var filterObject = {
@@ -95,6 +110,8 @@ var filterObject = {
 
 * For example, the filter object for applying a filter called "Region" with values "East" and "West" to all worksheets on the "Customers" and "Product" visualizations would like this:
 
+* Note you are required to include both scope.mode and scope.targetArray properties, and in this case targetArray is an array of strings defining the target visualization(s)):
+
 ```javascript
 var filterObject = {
   scope: {
@@ -111,6 +128,8 @@ var filterObject = {
 
 * For example, the filter object for applying a filter called "Category" with values "Furniture" and "Office Supplies" to all visualizations on the page would like this:
 
+* Note you don't have to include a value for the scope.targetArray propety because scope is at level of page.
+
 ```javascript
 var filterObject = {
   scope: {
@@ -124,7 +143,9 @@ var filterObject = {
 };
 ```
 
-* Note: there are four valid types of filters that are supported by the Tableau JS API. This includes: categorical, quantitative, hierarchical and relative_date. The filterObject sub-object called filter will look different for each type. Note that there are nullOption and anchorDate are optional. Please refer to Tableau JS API documentation for specific filter options by type (e.g. NullOption for quantitative and anchorDate for relative_date) and various enumerations for properties such as periodType, rangeType, etc.
+* Note: there are four valid types of filters that are supported by the Tableau JS API. This includes: categorical, quantitative, hierarchical and relative_date. The filter property or sub-object will look different for each of the four filter types.
+
+* As an example, "nullOption" and "anchorDate" are optional and specific to quantitative and relative_date filter types, respectively. Please refer to [Tableau JS API documentation](https://help.tableau.com/current/api/js_api/en-us/JavaScriptAPI/js_api_ref.htm) for specific filter options by type (e.g. NullOption for quantitative and anchorDate for relative_date) and various enumerations for properties such as periodType, rangeType, etc.
 
 * For example, the filter object quantitative will look like this:
 
@@ -166,6 +187,8 @@ var filterObject = {
 7. Apply parameters by calling tabfilters.applyParameters(parameterObj) method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
 * For example, the parameter object for applying values to a parameter called "Region Filter (Wildcard via Parameter)" with a value of "w" to the "Customers" and "Overview" visualizations would like this:
+
+* Again, as I mentioned above, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so they only accept scope.mode values for page and viz. They do not accept a scope.mode value of sheet.
 
 ```javascript
 var parameterObj = {
