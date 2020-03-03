@@ -69,7 +69,7 @@ async function defaultOnFirstInteractive(v) {
 
 * Note that the scope object defines the page, viz or sheets (i.e. target "content" objects) to apply the filter (or parameter) to. The scope.mode property holds the value of page (string), viz (array) and sheet (array). The Tableau JS API has different scopes for filters and parameters. Filters are at the scope of the Tableau JS API workbook object, so it can accept scope.mode values for all three levels: page, viz and sheet. However, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so it accepts scope.mode values for page and viz only.
 
-* The "scope.mode" definitions are:
+* The `scope.mode` definitions are:
   * page: all visualizations embedded in the page that contain specified filter (or parameter).
   * viz: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
   * sheet: specified viz and sheets.
