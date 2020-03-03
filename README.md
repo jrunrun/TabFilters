@@ -7,8 +7,8 @@ TabFilters is fairly plug-n-play. It will automatically discover your filters (a
 
 ## Getting Started with TabFilters
 
-1. Clone or download tabfilters.js
-2. Reference tabfilters.js in the html of the hosting web app.
+1. Clone the repository or download the `tabfilters.js` file in the `/dist` folder.
+2. Reference `tabfilters.js` in the html of the hosting web app.
 
 ```html
 
@@ -16,7 +16,7 @@ TabFilters is fairly plug-n-play. It will automatically discover your filters (a
 
 ```
 
-3. Initialize the TabFilters object once the hosting html page is finished loading using DOM onload event or equivalent function (e.g. jquery's $( document ).ready())
+3. Initialize the TabFilters object once the hosting html page is finished loading using DOM `onload event` or equivalent function (e.g. jquery's `$( document ).ready()`)
 
 Code in HTML file:
 
@@ -33,7 +33,7 @@ function initializeFilters(){
 
 ```
 
-4. Initialize Viz object, by calling the Viz constructor and passing a reference to the div container on the HTML page, the URL of the visualization on Tableau Server, and a set of options. See below example, and note the "onFirstInteractive" callback function. Note: you will do this for each visualization on the page.
+4. Initialize `Viz object`, by calling the `Viz constructor` and passing a reference to the `div` container on the HTML page, the URL of the visualization on Tableau Server, and a set of options. See below example, and note the `onFirstInteractive` callback function. Note: you will do this for each visualization on the page.
 
 ```javascript
 var placeholderDiv = document.getElementById("tableauViz");
@@ -51,7 +51,7 @@ var viz = new tableau.Viz(placeholderDiv, url, options);
 
 ```
 
-5. Initialize "TabFilters" by passing in the "Viz object" once it's been fully initialized. To do this, call the "TabFilters"discovery method using the "onFirstInteractive" callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page. Note that the "await" keyword is required before the "tabfilters.discovery(viz)" as the Tableau JS API is asynchronous.
+5. Initialize `TabFilters` by passing in the "Viz object" once it's been fully initialized. To do this, call the `TabFilters` discovery method using the `onFirstInteractive` callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page. Note that the `await` keyword is required before the `tabfilters.discovery(viz)` as the Tableau JS API is asynchronous.
 
 ```javascript
 
@@ -65,18 +65,18 @@ async function defaultOnFirstInteractive(v) {
 
 ```
 
-6. Apply filters by calling "tabfilters.applyFilters(filterObj) method" and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
+6. Apply filters by calling `tabfilters.applyFilters(filterObj)` method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
 * Note that the scope object defines the page, viz or sheets (i.e. target "content" objects) to apply the filter (or parameter) to. The scope.mode property holds the value of page (string), viz (array) and sheet (array). The Tableau JS API has different scopes for filters and parameters. Filters are at the scope of the Tableau JS API workbook object, so it can accept scope.mode values for all three levels: page, viz and sheet. However, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so it accepts scope.mode values for page and viz only.
 
 * The `scope.mode` definitions are:
-  * page: all visualizations embedded in the page that contain specified filter (or parameter).
-  * viz: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
-  * sheet: specified viz and sheets.
+  * `page`: all visualizations embedded in the page that contain specified filter (or parameter).
+  * `viz`: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
+  * `sheet`: specified viz and sheets.
 
 * For example, the filter object for applying a filter called "Region" with values "East" and "West" to the "CustomerOverview" and "CustomerScatter" worksheets which are located on the "Customers" viz. And this filter also applies to the "DaystoShip" and "ShipSummary" which are located on the "Shipping" viz would look like the following:
 
-* Note you are required to include both scope.mode and scope.targetArray properties, and in this case targetArray is an array of objects that include both viz and sheetsArray:
+* Note you are required to include both `scope.mode` and `scope.targetArray` properties, and in this case `targetArray` is an array of objects that include both viz and `sheetsArray`:
 
 ```javascript
 var filterObject = {
@@ -102,7 +102,7 @@ var filterObject = {
 
 * For example, the filter object for applying a filter called "Region" with values "East" and "West" to all worksheets on the "Customers" and "Product" visualizations would like this:
 
-* Note you are required to include both scope.mode and scope.targetArray properties, and in this case targetArray is an array of strings defining the target visualization(s)):
+* Note you are required to include both `scope.mode` and `scope.targetArray `properties, and in this case targetArray is an array of strings defining the target visualization(s)):
 
 ```javascript
 var filterObject = {
@@ -120,7 +120,7 @@ var filterObject = {
 
 * For example, the filter object for applying a filter called "Category" with values "Furniture" and "Office Supplies" to all visualizations on the page would like this:
 
-* Note you don't have to include a value for the scope.targetArray propety because scope is at level of page.
+* Note you don't have to include a value for the `scope.targetArray` propety because scope is at level of page.
 
 ```javascript
 var filterObject = {
@@ -176,11 +176,11 @@ var filterObject = {
 };
 ```
 
-7. Apply parameters by calling tabfilters.applyParameters(parameterObj) method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
+7. Apply parameters by calling `tabfilters.applyParameters(parameterObj)` method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
 * For example, the parameter object for applying values to a parameter called "Region Filter (Wildcard via Parameter)" with a value of "w" to the "Customers" and "Overview" visualizations would like this:
 
-* Again, as I mentioned above, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so they only accept scope.mode values for page and viz. They do not accept a scope.mode value of sheet.
+* Again, as I mentioned above, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so they only accept `scope.mode` values for page and viz. They do not accept a `scope.mode` value of sheet.
 
 ```javascript
 var parameterObj = {
@@ -210,9 +210,9 @@ var parameterObj = {
 };
 ```
 
-8. Getting the filter (or parameter) metadata such as the domain values is contained within the tabfilters object. I have not had a chance to create the appropriate getter methods. However, this should be fairly trivial to retrieve.
+8. Getting the filter (or parameter) metadata such as the domain values is contained within the `tabfilters` object. I have not had a chance to create the appropriate getter methods. However, this should be fairly trivial to retrieve.
 
-* To get the filters metadata, traverse the array of filter objects in each of the appropriate tabfilters.embeddedVizzes[].filters array. This includes the domain values, which worksheet(s) the filter is applied to and other relevant information. You can access this via the console. It will look something like this:
+* To get the filters metadata, traverse the array of filter objects in each of the appropriate `tabfilters.embeddedVizzes[].filters` array. This includes the domain values, which worksheet(s) the filter is applied to and other relevant information. You can access this via the console. It will look something like this:
 
 ```javascript
 filterFieldName: "Region"
@@ -229,7 +229,7 @@ filterDomainValues: Array(4)
 3: {id: 3, text: "West", tableauRawValue: "West"}
 ```
 
-* To get the parameters metadata, traverse the array of filter objects in each of the appropriate tabfilters.embeddedVizzes[].parameters array. This includes the data type, allowable values and other relevant information. You can access this via the console. It will look something like this:
+* To get the parameters metadata, traverse the array of filter objects in each of the appropriate `tabfilters.embeddedVizzes[].parameters` array. This includes the data type, allowable values and other relevant information. You can access this via the console. It will look something like this:
 
 ```javascript
 parameters: Array(9)
