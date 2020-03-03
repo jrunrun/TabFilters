@@ -112,4 +112,40 @@ var rangeFilter_pageExample = {
   }
 };
 
+// // this scope is unlikely, but it's possible the same parameter name exists on multiple workbooks embedded in same page
+// var parameter_Example_1 = {
+//   scope: {
+//     mode: "workbook",
+//     targetArray: ["tabfilters_v3"]
+//   },
+//   parameter: {
+//     parameterName: "Region Filter (Wildcard via Parameter)",
+//     values: "w"
+//   }
+// };
+
+// testing this now
+var parameter_Example_2 = {
+  scope: {
+    mode: "viz",
+    targetArray: ["Customers", "Overview"]
+  },
+  parameter: {
+    parameterName: "Region Filter (Wildcard via Parameter)",
+    values: "w"
+  }
+};
+
+// this works
+var parameter_Example_3 = {
+  scope: {
+    mode: "page"
+  },
+  parameter: {
+    parameterName: "Region Filter (Wildcard via Parameter)",
+    values: "w"
+  }
+};
+
+
 var filtersArray = [categorical_pageExample_1, categorical_pageExample_2, rangeFilter_pageExample, relativeDate_pageExample];
