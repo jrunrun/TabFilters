@@ -10,11 +10,11 @@ TabFilters is fairly plug-n-play. It will automatically discover your filters (a
 1. Clone or download tabfilters.js
 2. Reference tabfilters.js in the html of the hosting web app.
 
-'''html
+```html
 
 <script type="text/javascript" src="../dist/tabfilters.js"></script>
 
-'''
+```
 
 3. Initialize the TabFilters object once the hosting html page is finished loading using DOM onload event or equivalent function (e.g. jquery's $( document ).ready())
 
