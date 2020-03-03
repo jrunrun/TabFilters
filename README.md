@@ -33,11 +33,9 @@ function initializeFilters(){
 
 ```
 
-4. Initialize Viz object, by calling the Viz constructor and passing a reference to the div container on the HTML page, the URL of the visualization on Tableau Server, and a set of options. See below example, and note the onFirstInteractive callback function. Note: you will do this for each visualization on the page.
+4. Initialize Viz object, by calling the Viz constructor and passing a reference to the div container on the HTML page, the URL of the visualization on Tableau Server, and a set of options. See below example, and note the ```javascript onFirstInteractive``` callback function. Note: you will do this for each visualization on the page.
 
 ```javascript
-
-
 var placeholderDiv = document.getElementById("tableauViz");
 var url = "http://my-server/views/my-workbook/my-view";
 var options = {
@@ -53,7 +51,7 @@ var viz = new tableau.Viz(placeholderDiv, url, options);
 
 ```
 
-5. Initialize tabfilters by passing in the Viz object once it's been fully initialized. To do this, call the tabfilters discovery method using the onFirstInteractive callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page. Note that the "await" keyword is required before the tabfilters.discovery(viz) as the Tableau JS API is asynchronous.
+5. Initialize ```javascript tabfilters``` by passing in the ```javascript Viz object``` once it's been fully initialized. To do this, call the tabfilters discovery method using the onFirstInteractive callback function defined in the options that were used above by Viz constructor. Note: you will do this for each visualization on the page. Note that the ```javascript "await"``` keyword is required before the ```javascript tabfilters.discovery(viz)``` as the Tableau JS API is asynchronous.
 
 ```javascript
 
@@ -67,20 +65,14 @@ async function defaultOnFirstInteractive(v) {
 
 ```
 
-6. Apply filters by calling tabfilters.applyFilters(filterObj) method and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
+6. Apply filters by calling ```javascript tabfilters.applyFilters(filterObj) method``` and passing in an object that specifies the filter and target content. The target content can be the entire page, viz or specific sheets.
 
 * Note that the scope object defines the page, viz or sheets (i.e. target "content" objects) to apply the filter (or parameter) to. The scope.mode property holds the value of page (string), viz (array) and sheet (array). The Tableau JS API has different scopes for filters and parameters. Filters are at the scope of the Tableau JS API workbook object, so it can accept scope.mode values for all three levels: page, viz and sheet. However, parameters are at the scope of the Tableau JS API workbook object (not worksheet), so it accepts scope.mode values for page and viz only.
 
-* The scope.mode definitions are:
+* The ```javascript scope.mode``` definitions are:
   * page: all visualizations embedded in the page that contain specified filter (or parameter).
   * viz: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
   * sheet: specified viz and sheets.
-
-* The scope.mode definitions are:
-  * page: all visualizations embedded in the page that contain specified filter (or parameter).
-  * viz: all worksheets included in the specified viz (i.e. dashboard) that contain specified filter (or parameter).
-  * sheet: specified viz and sheets.
-
 
 * For example, the filter object for applying a filter called "Region" with values "East" and "West" to the "CustomerOverview" and "CustomerScatter" worksheets which are located on the "Customers" viz. And this filter also applies to the "DaystoShip" and "ShipSummary" which are located on the "Shipping" viz would look like the following:
 
