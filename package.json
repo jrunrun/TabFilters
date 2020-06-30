@@ -10,7 +10,7 @@
   "private": false,
   "scripts": {
     "cleanup:build": "rimraf ./dist/*",
-    "build:prod": "rollup -c",
+    "build:prod": "rollup -c  && node copyScript.js",
     "release": "npx run-s cleanup:build build:prod"
   },
   "devDependencies": {
@@ -29,6 +29,7 @@
     "@babel/runtime": "^7.10.2"
   },
   "dependencies": {
-    "core-js": "^3.6.5"
+    "core-js": "^3.6.5",
+    "prepend": "^1.0.2"
   }
 }

@@ -2,6 +2,7 @@
 // author: Justin Crayraft
 
 // import 'core-js/stable';
+// import './regeneratorRuntime.patch'
 import 'core-js/modules/es.array.concat'
 import 'core-js/modules/es.array.includes'
 import 'core-js/modules/es.array.iterator'
