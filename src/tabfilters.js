@@ -1,7 +1,22 @@
 // filter library for the Tableau JS API
 // author: Justin Crayraft
 
-class TabFilters {
+// import 'core-js/stable';
+// import './regeneratorRuntime.patch'
+import 'core-js/modules/es.array.concat'
+import 'core-js/modules/es.array.includes'
+import 'core-js/modules/es.array.iterator'
+import 'core-js/modules/es.array.filter'
+import 'core-js/modules/es.array.map'
+import 'core-js/modules/es.object.freeze'
+import 'core-js/modules/es.object.to-string'
+import 'core-js/modules/es.promise'
+import 'core-js/modules/es.set'
+import 'core-js/modules/es.string.iterator'
+import 'core-js/modules/es.string.includes'
+import 'core-js/modules/web.dom-collections.iterator'
+
+export default class TabFilters {
 
   constructor() {
     // future: option to add additional metadata (e.g. label, index, etc.) to filter values in order to satisfy any interesting 3rd-party UI button requirements
