@@ -8,19 +8,20 @@ export default {
     input: 'src/tabfilters.js',
     output: [
         {
-            file: pkg.main,
+            file: pkg.main.replace('.js', '.salesforce.js'),
             format: 'umd',
             name: 'TabFilters'
         },
         {
-            file: pkg.main.replace('.js', '.min.js'),
+            file: pkg.main.replace('.js', '.browser.js'),
+            format: 'umd',
+            name: 'TabFilters'
+        },
+        {
+            file: pkg.main.replace('.js', '.salesforce.min.js'),
             format: 'umd',
             name: 'TabFilters',
             plugins: [terser()]
-        },
-        {
-            file: pkg.module,
-            format: 'es',
         }
     ],
     external: [

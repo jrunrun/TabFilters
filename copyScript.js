@@ -8,7 +8,12 @@ fs.readFile('./src/regeneratorRuntime.patch.js', (err, data) => {
     console.log(err)
     return
   }
-  prepend('./dist/tabfilters.js', data, (preErr) => {
+  prepend('./dist/tabfilters.salesforce.js', data, (preErr) => {
+    if (preErr) {
+      console.log('prepend error', preErr)
+    }
+  })
+  prepend('./dist/tabfilters.salesforce.min.js', data, (preErr) => {
     if (preErr) {
       console.log('prepend error', preErr)
     }
